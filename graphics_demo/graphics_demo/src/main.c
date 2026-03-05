@@ -58,8 +58,8 @@ int main()
 	const int road_x = 50;
 	int road_y = -5;      // start slightly off-screen so it appears from top
 	const int road_h = 5; // height of the road line (matches putImage height)
-	const int road_speed = 1; // how fast they are moving
-	const int screen_h = 160; // how tall the screen is
+	const int road_speed = 1; //how fast the lines are moving, makes it look like we are moving on the road
+	const int screen_h = 160;	//how tall the screen is
 
 	initClock();
 	uint16_t oldy = y;
@@ -68,8 +68,7 @@ int main()
 	putImage(0,0,128,160,roadb,0,0);
 	putImage(50,80,50,36,usercar,0,0);
 
-	const int road_speed = 1; //how fast the lines are moving, makes it look like we are moving on the road
-	const int screen_h = 160;	//how tall the screen is
+	
 
 	while(1)
 	{
@@ -110,7 +109,7 @@ int main()
 				hinverted=1;
 			}			
 		}
-		/* only need left and right because thats all the car is doing
+		// only need left and right because thats all the car is doing
 		if ( (GPIOA->IDR & (1 << 11)) == 0) // down pressed
 		{
 			if (y < 140)
@@ -129,7 +128,7 @@ int main()
 				vinverted = 1;
 			}
 		}
-		*/
+		
 
 		if ((vmoved) || (hmoved))
 		{
@@ -165,9 +164,9 @@ int main()
 void menuOpen(int Open) {
 	//Bit 8 == Bottom button / Bit 11 == Top button
 	if ((GPIOB->IDR = GPIOB->IDR |= (1 << 8) == 0) && (GPIOB->IDR = GPIOB->IDR |= (1 << 11) == 0)) {
-		printText(char "Menu", 10, 20, RGBToWord(0xff,0xff,0), 0);
-		menu_options.resume = printText(char "Resume", 10, 40, RGBToWord(0xff,0xff,0), 0);
-		menu_options.reset = printText(char "Reset", 10, 60, RGBToWord(0xff,0xff,0), 0);
+		printTextX2(char "Menu", 10, 20, RGBToWord(0xff,0xff,0), 0);
+		menu_options.resume = printTextX2(char "Resume", 10, 40, RGBToWord(0xff,0xff,0), 0);
+		menu_options.reset = printTextX2(char "Reset", 10, 60, RGBToWord(0xff,0xff,0), 0);
 		
 		return 0;
 	}
