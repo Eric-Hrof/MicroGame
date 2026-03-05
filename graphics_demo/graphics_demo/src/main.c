@@ -1,4 +1,6 @@
 #include <stm32f031x6.h>
+#include <stdio.h>
+#include <time.h>
 #include "display.h"
 void initClock(void);
 void initSysTick(void);
@@ -27,15 +29,15 @@ const uint16_t car1[] =
 struct menu {
 	int Menu_Open;
 	int Menu_closed;
-}
+};
 
-/*
+
 struct menu_options {
 	int resume;
 	int reset;
-}
+};
 
-*/
+
 
 int main()
 {
@@ -55,14 +57,9 @@ int main()
 	const int screen_h = 160; // how tall the screen is
 
 	initClock();
-	uint16_t oldy = y;
 	initClock();
 	initSysTick();
-	putImage(0,0,128,160,roadb,0,0);
-	putImage(50,80,50,36,usercar,0,0);
 
-	initClock();
-	initSysTick();
 	setupIO();
 
 	//draw road just grey rectangle
