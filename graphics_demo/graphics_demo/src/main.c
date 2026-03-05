@@ -141,17 +141,21 @@ int main()
 }
 
 //menu opening function. Top and Bottom button pressed at same time opens the menu. 
-int menuOpen(int Open) {
+int menuOpen(int Open) 
+{
 	//Bit 8 == Bottom button / Bit 11 == Top button
-	if (!(GPIOB->IDR & (1 << 8)) && !(GPIOB->IDR & (1 << 11))) {
+	if (!(GPIOB->IDR & (1 << 8)) && !(GPIOB->IDR & (1 << 11))) 
+	{
 		int selected = 0; // 0 = resume , 1 = reset
 		delay(10000);
 		printTextX2("Menu", 10, 20, RGBToWord(0xff,0xff,0), 0);
 		printTextX2("Resume", 10, 40, RGBToWord(0xff,0xff,0), 0);
 		printTextX2("Reset", 10, 60, RGBToWord(0xff,0xff,0), 0);
 
-		while(1) {
-			if (selected == 0) {
+		while(1) 
+		{
+			if (selected == 0) 
+			{
 				printTextX2("Resume", 10, 40, RGBToWord(255, 9, 0), 0);
 				printTextX2("Reset", 10, 60, RGBToWord(0xff,0xff,0), 0);
 			}
@@ -160,7 +164,10 @@ int menuOpen(int Open) {
 				printTextX2("Resume", 10, 40, RGBToWord(255, 255, 0), 0);
 				printTextX2("Reset", 10, 60, RGBToWord(255, 9, 0), 0);
 			}
-
+			if (GPIOB->IDR = GPIOB->IDR && (1 << 8)) 
+			{
+				
+			}
 			
 
 		}
