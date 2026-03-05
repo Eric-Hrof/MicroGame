@@ -151,6 +151,7 @@ int main()
 	return 0;
 }
 
+/*
 //menu opening function. Top and Bottom button pressed at same time opens the menu. 
 void menuOpen(int Open) {
 	//Bit 8 == Bottom button / Bit 11 == Top button
@@ -177,6 +178,8 @@ void menuClosed(int Closed) {
 		return 1;
 	}
 }
+
+*/
 
 
 
