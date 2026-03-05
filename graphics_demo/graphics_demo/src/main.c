@@ -8,6 +8,10 @@ void setupIO();
 int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
+//function signatures for the menu buttons
+void openMenu(int);
+void closedMenu(int);
+
 
 volatile uint32_t milliseconds;
 const uint16_t roadbase[]=
@@ -26,6 +30,20 @@ const uint16_t road_line[]=
 {
 0,0,65335,0,0,0,0,65335,0,0,0,0,65335,0,0,0,0,65335,0,0,0,0,0,0,0,
 };
+
+//menu structure 
+struct menu {
+	int Menu_Open;
+	int Menu_closed;
+}
+
+struct menu_options {
+	int resume;
+	int reset;
+}
+
+
+
 int main()
 {
 	int hinverted = 0;
@@ -142,6 +160,36 @@ int main()
 	}
 	return 0;
 }
+
+//menu opening function. Top and Bottom button pressed at same time opens the menu. 
+void menuOpen(int Open) {
+	//Bit 8 == Bottom button / Bit 11 == Top button
+	if ((GPIOB->IDR = GPIOB->IDR |= (1 << 8) == 0) && (GPIOB->IDR = GPIOB->IDR |= (1 << 11) == 0)) {
+		printText(char "Menu", 10, 20, RGBToWord(0xff,0xff,0), 0);
+		menu_options.resume = printText(char "Resume", 10, 40, RGBToWord(0xff,0xff,0), 0);
+		menu_options.reset = printText(char "Reset", 10, 60, RGBToWord(0xff,0xff,0), 0);
+		
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+//menu closing function. Top & bottom button pressed at the same time if menu is already open closes it
+void menuClosed(int Closed) {
+	if ((GPIOB->IDR = GPIOB->IDR |= (1 << 8) == 0) && (GPIOB->IDR = GPIOB->IDR |= (1 << 11) == 0)) {
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+
+
 void initSysTick(void)
 {
 	SysTick->LOAD = 48000;
