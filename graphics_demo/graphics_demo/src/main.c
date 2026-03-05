@@ -156,17 +156,21 @@ int menuOpen(int Open)
 		{
 			if (selected == 0) 
 			{
+				//resume button button becomes red
 				printTextX2("Resume", 10, 40, RGBToWord(255, 9, 0), 0);
 				printTextX2("Reset", 10, 60, RGBToWord(0xff,0xff,0), 0);
 			}
 			else 
 			{
+				//reset button becomes red
 				printTextX2("Resume", 10, 40, RGBToWord(255, 255, 0), 0);
 				printTextX2("Reset", 10, 60, RGBToWord(255, 9, 0), 0);
 			}
-			if (GPIOB->IDR = GPIOB->IDR && (1 << 8)) 
+			if (!(GPIOB->IDR = GPIOB->IDR && (1 << 8))) 
 			{
-				
+				//moving the button down one
+				selected = (selected + 1) % 2;
+
 			}
 			
 
