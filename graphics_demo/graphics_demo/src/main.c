@@ -29,12 +29,13 @@ struct menu {
 	int Menu_closed;
 }
 
+/*
 struct menu_options {
 	int resume;
 	int reset;
 }
 
-
+*/
 
 int main()
 {
@@ -94,7 +95,7 @@ int main()
 	
 
 		// draw enemy car t
-		putImage(car1_x, car1_y, 50, 36, car1 0, 0);
+		putImage(car1_x, car1_y, 50, 36, car1, 0, 0 ,0);
 
 		// draw player car on top
 		putImage(x, y, 50, 36, usercar, 0, 0);
