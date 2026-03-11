@@ -1,4 +1,5 @@
 #include <stm32f031x6.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 #include "display.h"
@@ -18,28 +19,20 @@ int closedMenu(int);
 uint32_t shift_register=0;
 void randomize(void)
 {
-    // uses ADC noise values to seed the shift_register
-    while(shift_register==0)
-    {
-        for (int i=0;i<10;i++)
-        {
-            shift_register+=(readADC()<<i);
-        }
-    }
+    shift_register = 0xABCDE;   // any non‑zero seed works
 }
 uint32_t prbs()
 {
-	// This is an unverified 31 bit PRBS generator
-	// It should be maximum length but this has not been verified 
-	unsigned long new_bit=0;	
+    // If shift_register ever becomes 0, reseed it
+    if (shift_register == 0)
+        shift_register = 0xABCDE;
 
-    new_bit= ((shift_register & (1<<27))>>27) ^ ((shift_register & (1<<30))>>30);
-    new_bit= ~new_bit;
-    new_bit = new_bit & 1;
-    shift_register=shift_register << 1;
-    shift_register=shift_register | (new_bit);
-		
-	return shift_register & 0x7fffffff; // return 31 LSB's 
+    // taps for 31-bit LFSR: bits 31 and 28
+    uint32_t new_bit = ((shift_register >> 30) ^ (shift_register >> 27)) & 1;
+
+    shift_register = (shift_register << 1) | new_bit;
+
+    return shift_register & 0x7FFFFFFF;
 }
 
 void loop();
@@ -3818,46 +3811,55 @@ int main()
 	uint16_t y = 120;
 
 	//pick a number between 1 and 2
-	uint32_t r = prbs();
-	uint32_t one_or_two = (r % 2) + 1;	
+
+	uint32_t r;
+    uint32_t one_or_two;
 
 	// car 1 x y and the spped
 	uint16_t car1_x = 70;
 	int car1_y = -40;
 	const int car1_speed = 5;
 
-	const int screen_h = 160; // how tall the screen is
+	const int screen_h = 170; // how tall the screen is
 
-	initClock();
 	initClock();
 	initSysTick();
-
 	setupIO();
+	randomize();
+
 
 	while (1)
 	{
-		loop();
+
+		// --- store old positions ---
+		static int old_car1_x = 0;
+		static int old_car1_y = 0;
+		static int old_player_x = 0;
+		static int old_player_y = 0;
+
+		// --- ERASE OLD SPRITES (only the rectangles, not whole screen) ---
+		fillRectangle(old_car1_x, old_car1_y, 50, 36, 0);   // erase enemy car
+		fillRectangle(old_player_x, old_player_y, 50, 36, 0); // erase player car
+
 
 		// move the enemy car down the screen
 		car1_y += car1_speed;
+		loop();
 		if (car1_y > screen_h)
 		{
-			car1_y = -36;
+    		car1_y = -36;
+
+    		// randomize X only when car resets
+    		r = prbs();
+    		one_or_two = (r % 10) + 1;
+
+    		if (one_or_two == 1){
+				car1_x = 0;
+			}
+    		else{
+				car1_x = 70;
+			}
 		}
-
-		loop();
-
-		// random number generator to randomize placement of car across screen
-
-		if (one_or_two == 1)
-		{
-			car1_x = 30;
-		}
-		else
-		{
-			car1_x = 70;
-		}
-
 		// draw enemy car t
 		putImage(car1_x, car1_y, 50, 36, car1, 0, 0);
 
@@ -3907,17 +3909,24 @@ int main()
 			}
 		}
 		*/
+		putImage(car1_x, car1_y, 50, 36, car1, 0, 0);
+		putImage(x, y, 50, 36, usercar, 0, 0);
 
+		// this updates the old postiton
+		old_car1_x = car1_x;
+		old_car1_y = car1_y;
+		old_player_x = x;
+		old_player_y = y;
 
 		// death message if the car x = the user x and same for y
-		if (x < car1_x + 25 && x + 30 > car1_x && y < car1_y + 26 && y + 26 > car1_y)
+		if (x < car1_x + 15 && x + 20 > car1_x && y < car1_y + 16 && y + 16 > car1_y )
 		{
 			// show centered death message (printTextX2 needs Fore and Back colours)
 			printText("GAME OVER", 40, 60, 0xFFFF, 0x0000);
 			break;
 		}
 
-		delay(50);
+		delay(20);
 	}
 	return 0;
 }
@@ -3968,7 +3977,6 @@ int menuOpen(int Open)
 }
 void loop()
 		{
-			fillRectangle(0, 7, 128, 170, 0);
     		static uint32_t lastSecond = 0;
     		static uint32_t gameTime = 0;
 
