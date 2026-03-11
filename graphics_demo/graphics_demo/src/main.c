@@ -284,6 +284,8 @@ int main()
 
 		loop();
 
+		menuOpen();
+
 		// random number generator to randomize placement of car across screen
 
 		if (one_or_two == 1)
