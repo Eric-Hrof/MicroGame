@@ -3862,6 +3862,7 @@ int main()
 		}
 
 		menuOpen();
+
 		// draw enemy car t
 		putImage(car1_x, car1_y, 50, 36, car1, 0, 0);
 
@@ -3973,6 +3974,21 @@ int menuOpen(int Open)
 				//releasing the button
 				while (GPIOB->IDR != (1 << 11)) {}
 			}
+
+			//The effects of selecting the options. One will resume and the other restart (Restart function in progress)
+			if ((GPIOB->IDR = GPIOB->IDR && (1 << 8)) && (GPIOB->IDR = GPIOB->IDR && (1 << 11))) {
+				//resuming the game
+				if (selected == 0)
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				// reset function goes here. 
+				return 1;
+			}
+			
 			return 0;
 		}
 	}
