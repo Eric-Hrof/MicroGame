@@ -3966,7 +3966,7 @@ int main()
         putImage(car1_x, car1_y, 50, 36, cars[current],    0, 0);
         putImage(x,      y,      50, 36, usercar, 0, 0);
 		
-		menuOpen();
+		menuOpen(); // menu opener if conditions are correct
 		
         loop(); // update timer
 
@@ -4053,6 +4053,7 @@ int menuOpen(int Open)
 		}
 	}
 }
+
 void loop()
 {
     if (milliseconds - lastSecond >= 1000)
