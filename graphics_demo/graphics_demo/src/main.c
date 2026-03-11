@@ -42,6 +42,7 @@ uint32_t prbs()
 	return shift_register & 0x7fffffff; // return 31 LSB's 
 }
 
+void loop();
 
 volatile uint32_t milliseconds;
 const uint16_t usercar[] = {
@@ -246,11 +247,13 @@ int main()
 {
 	int hinverted = 0;
 	int vinverted = 0;
-	int toggle = 0;
 	int hmoved = 0;
 	int vmoved = 0;
 	uint16_t x = 64;
-	uint16_t y = 80;
+	uint16_t y = 120;
+
+	//timer
+	int timeCounter = 0;
 
 	//pick a number between 1 and 2
 	uint32_t r = prbs();
@@ -269,13 +272,8 @@ int main()
 
 	setupIO();
 
-	// draw road just grey rectangle
-	fillRectangle(14, 0, 100, 160, 0x8410);
-
 	while (1)
 	{
-		// draw road again
-		fillRectangle(14, 0, 100, screen_h, 0x8410);
 
 		// move the enemy car down the screen
 		car1_y += car1_speed;
@@ -283,6 +281,8 @@ int main()
 		{
 			car1_y = -36;
 		}
+
+		loop();
 
 		// random number generator to randomize placement of car across screen
 
@@ -296,7 +296,7 @@ int main()
 		}
 
 		// draw enemy car t
-		putImage(car1_x, car1_y, 50, 36, car1, 0, 0, 0);
+		putImage(car1_x, car1_y, 50, 36, car1, 0, 0);
 
 		// draw player car on top
 		putImage(x, y, 50, 36, usercar, 0, 0);
@@ -306,9 +306,9 @@ int main()
 
 		if ((GPIOB->IDR & (1 << 4)) == 0) // right pressed
 		{
-			if (x < 110)
+			if (x < 90)
 			{
-				x = x + 1;
+				x = x + 5;
 				hmoved = 1;
 				hinverted = 0;
 			}
@@ -318,7 +318,7 @@ int main()
 
 			if (x > 10)
 			{
-				x = x - 1;
+				x = x - 5;
 				hmoved = 1;
 				hinverted = 1;
 			}
@@ -345,30 +345,15 @@ int main()
 		}
 		*/
 
-		if ((hmoved))
-		{
-			// only redraw if there has been some movement (reduces flicker)
-			fillRectangle(oldx,oldy,12,16,0);
-			oldx = x;
-			oldy = y;					
-			if (hmoved)
-			{
-				if (toggle)
-					putImage(x,y,12,16,usercar,hinverted,0);
-				else
-					putImage(x,y,12,16,usercar,hinverted,0);
-				
-				toggle = toggle ^ 1;
-			}
-		}
 
 		// death message if the car x = the user x and same for y
-		if (car1_x == x && car1_y == y)
+		if (x < car1_x + 50 && x + 50 > car1_x && y < car1_y + 36 && y + 36 > car1_y)
 		{
 			// show centered death message (printTextX2 needs Fore and Back colours)
-			printTextX2("DEAD", 40, 73, 0xFFFF, 0x0000);
+			printText("GAME OVER", 40, 60, 0xFFFF, 0x0000);
 			break;
 		}
+
 		delay(50);
 	}
 	return 0;
@@ -418,6 +403,23 @@ int menuOpen(int Open)
 		}
 	}
 }
+void loop()
+		{
+			fillRectangle(14, 0, 100, 128, 0x0000);
+    		static uint32_t lastSecond = 0;
+    		static uint32_t gameTime = 0;
+
+    		if(milliseconds - lastSecond >= 1000)
+    		{
+        		lastSecond = milliseconds;
+        		gameTime++;
+    		}
+
+    		char buffer[20];
+    		sprintf(buffer,"Time: %lu s", gameTime);
+
+    		printText(buffer,0,0,0xFFFF,0x0000);
+		}
 
 // menu closing function. Top & bottom button pressed at the same time if menu is already open closes it
 int menuClosed(int Closed)
