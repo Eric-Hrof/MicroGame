@@ -3827,10 +3827,8 @@ int main()
 	setupIO();
 	randomize();
 
-
 	while (1)
 	{
-
 		// --- store old positions ---
 		static int old_car1_x = 0;
 		static int old_car1_y = 0;
