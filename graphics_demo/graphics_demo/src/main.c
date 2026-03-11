@@ -170,6 +170,14 @@ int menuOpen(int Open)
 			{
 				//moving the button down one
 				selected = (selected + 1) % 2;
+				while (GPIOB->IDR != (1 << 8)) {}
+
+			}
+			if (!(GPIOB->IDR = GPIOB->IDR && (1 << 11)))
+			{
+				//moving the button up one
+				selected = (selected + 1) % 2;
+				while (GPIOB->IDR != (1 << 11)) {}
 
 			}
 			
