@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "display.h"
+
 void initClock(void);
 void initSysTick(void);
 void SysTick_Handler(void);
@@ -11,9 +12,6 @@ void setupIO();
 int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
-// function signatures for the menu buttons
-int openMenu(int);
-int closedMenu(int);
 
 //imported prbs from io project from brightspace
 uint32_t shift_register=0;
@@ -3794,144 +3792,94 @@ const uint16_t car1[] =
 		0,
 		0,
 };
+   
 
 const uint16_t roadAnimation1[] = {0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,0,0,0,0,0,35146,65535,35146,35146,35146,35146,35146,35146,35146,35146,24325,35146,35146,35146,35146,35146,35146,35146,35146,35146,65535,35146,0,0,0,0,0,};
 //const uint16_t roadAnimation2[] = {};
 //const uint16_t roadAnimation3[] = {};
 //const uint16_t roadAnimation4[] = {};
 
+uint32_t gameTime = 0;
+uint32_t lastSecond = 0;
+
 int main()
 {
+    initClock();
+    initSysTick();
+    setupIO();
+    randomize();
 
-	int hinverted = 0;
-	int vinverted = 0;
-	int hmoved = 0;
-	int vmoved = 0;
-	uint16_t x = 64;
-	uint16_t y = 120;
+    uint16_t x = 64;
+    uint16_t y = 120;
+    uint16_t car1_x = 70;
+    int car1_y = -40;
 
-	//pick a number between 1 and 2
+	gameTime = 0; 
+	lastSecond = milliseconds;       // sync to current time
 
-	uint32_t r;
-    uint32_t one_or_two;
+    // ── START SCREEN ──────────────────────────────────────────────
+    fillRectangle(0, 0, 128, 170, 0x0000);
+    printText("TRAFFIC RACER", 5, 60, RGBToWord(255, 80, 0), 0x0000);
+    printText("Press -> to start", 2, 120, 0xFFFF, 0x0000);
 
-	// car 1 x y and the spped
-	uint16_t car1_x = 70;
-	int car1_y = -40;
-	const int car1_speed = 5;
+    while (GPIOB->IDR & (1 << 4)); // wait for PB4 press
+    fillRectangle(0, 0, 128, 170, 0x0000);
 
-	const int screen_h = 170; // how tall the screen is
+	char cars[7] = { };
+	int current = 0;
 
-	initClock();
-	initSysTick();
-	setupIO();
-	randomize();
+    // ── GAME LOOP ─────────────────────────────────────────────────
+    while (1)
+    {
+        fillRectangle(car1_x, car1_y, 50, 36, 0x0000);  // erase enemy
+        fillRectangle(x, y, 50, 36, 0x0000);             // erase player
 
-	while (1)
-	{
-		// --- store old positions ---
-		static int old_car1_x = 0;
-		static int old_car1_y = 0;
-		static int old_player_x = 0;
-		static int old_player_y = 0;
+        // move enemy car down
+        car1_y += 5;
+        if (car1_y > 170)
+        {
+            car1_y = -36;
+            car1_x = (prbs() % 2) ? 20 : 70; // random lane
 
-		// --- ERASE OLD SPRITES (only the rectangles, not whole screen) ---
-		fillRectangle(old_car1_x, old_car1_y, 50, 36, 0);   // erase enemy car
-		fillRectangle(old_player_x, old_player_y, 50, 36, 0); // erase player car
+			current++;
+			if (current >= 7) {
+        	current = 0; 
+    		}		
+        }
 
+        // player input
+        if (!(GPIOB->IDR & (1 << 4)) && x < 90) x += 5; // right
+        if (!(GPIOB->IDR & (1 << 5)) && x > 10) x -= 5; // left
 
-		// move the enemy car down the screen
-		car1_y += car1_speed;
-		loop();
-		if (car1_y > screen_h)
-		{
-			car1_y = -36;
-		}
-
-		loop();
-
-		// random number generator to randomize placement of car across screen
-
-		if (one_or_two == 1)
-		{
-			car1_x = 30;
-		}
-		else
-		{
-			car1_x = 70;
-		}
+        // draw both cars
+        putImage(car1_x, car1_y, 50, 36, cars[current],    0, 0);
+        putImage(x,      y,      50, 36, usercar, 0, 0);
 
 		menuOpen();
+        loop(); // update timer
 
-		// draw enemy car t
-		putImage(car1_x, car1_y, 50, 36, car1, 0, 0);
-
-		// draw player car on top
-		putImage(x, y, 50, 36, usercar, 0, 0);
-
-		hmoved = vmoved = 0;
-		hinverted = vinverted = 0;
-
-		if ((GPIOB->IDR & (1 << 4)) == 0) // right pressed
+		// collision
+		if (x < car1_x + 25 && x + 25 > car1_x &&
+   			 y < car1_y + 50 && y + 50 > car1_y)
 		{
-			if (x < 90)
-			{
-				x = x + 5;
-				hmoved = 1;
-				hinverted = 0;
-			}
-		}
-		if ((GPIOB->IDR & (1 << 5)) == 0) // left pressed
-		{
+    		fillRectangle(0, 0, 128, 170, 0x0000);
+    		printTextX2("GAME OVER", 5, 60, 0xFFFF, 0x0000);
+    		printText("Press -> to restart", 2, 120, 0xFFFF, 0x0000);
 
-			if (x > 10)
-			{
-				x = x - 5;
-				hmoved = 1;
-				hinverted = 1;
-			}
-		}
-		/*
-		// only need left and right because thats all the car is doing
-		if ((GPIOA->IDR & (1 << 11)) == 0) // down pressed
-		{
-			if (y < 140)
-			{
-				y = y + 1;
-				vmoved = 1;
-				vinverted = 0;
-			}
-		}
-		if ((GPIOA->IDR & (1 << 8)) == 0) // up pressed
-		{
-			if (y > 16)
-			{
-				y = y - 1;
-				vmoved = 1;
-				vinverted = 1;
-			}
-		}
-		*/
-		putImage(car1_x, car1_y, 50, 36, car1, 0, 0);
-		putImage(x, y, 50, 36, usercar, 0, 0);
+    		while (GPIOB->IDR & (1 << 4));  // wait for press
+    		while (!(GPIOB->IDR & (1 << 4))); // wait for release
 
-		// this updates the old postiton
-		old_car1_x = car1_x;
-		old_car1_y = car1_y;
-		old_player_x = x;
-		old_player_y = y;
+    		// reset
+    		x = 64; y = 120;
+    		car1_x = 70; car1_y = -40;
+    		gameTime = 0;
+    		lastSecond = milliseconds;
+    		fillRectangle(0, 0, 128, 170, 0x0000);
+}
 
-		// death message if the car x = the user x and same for y
-		if (x < car1_x + 15 && x + 20 > car1_x && y < car1_y + 16 && y + 16 > car1_y )
-		{
-			// show centered death message (printTextX2 needs Fore and Back colours)
-			printText("GAME OVER", 40, 60, 0xFFFF, 0x0000);
-			break;
-		}
-
-		delay(20);
-	}
-	return 0;
+        delay(20);
+    }
+    return 0;
 }
 
 // menu opening function. Top and Bottom button pressed at same time opens the menu.
@@ -3974,53 +3922,20 @@ int menuOpen(int Open)
 				//releasing the button
 				while (GPIOB->IDR != (1 << 11)) {}
 			}
-
-			//The effects of selecting the options. One will resume and the other restart (Restart function in progress)
-			if ((GPIOB->IDR = GPIOB->IDR && (1 << 8)) && (GPIOB->IDR = GPIOB->IDR && (1 << 11))) {
-				//resuming the game
-				if (selected == 0)
-				{
-					return 0;
-				}
-			}
-			else
-			{
-				// reset function goes here. 
-				return 1;
-			}
-			
 			return 0;
 		}
 	}
 }
 void loop()
-		{
-    		static uint32_t lastSecond = 0;
-    		static uint32_t gameTime = 0;
-
-    		if(milliseconds - lastSecond >= 1000)
-    		{
-        		lastSecond = milliseconds;
-        		gameTime++;
-    		}
-
-    		char buffer[20];
-    		sprintf(buffer,"Time: %lu s", gameTime);
-
-    		printText(buffer,0,0,0xFFFF,0x0000);
-		}
-
-// menu closing function. Top & bottom button pressed at the same time if menu is already open closes it
-int menuClosed(int Closed)
 {
-	if ((GPIOB->IDR = GPIOB->IDR |= (1 << 8) == 0) && (GPIOB->IDR = GPIOB->IDR |= (1 << 11) == 0))
+    if (milliseconds - lastSecond >= 1000)
 	{
-		return 0;
-	}
-	else
-	{
-		return 1;
-	}
+        lastSecond = milliseconds;
+        gameTime++;
+        char buffer[16];
+        sprintf(buffer, "Time: %lus", gameTime);
+        printText(buffer, 0, 0, 0xFFFF, 0x0000);
+    }
 }
 
 void initSysTick(void)
