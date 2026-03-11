@@ -3809,6 +3809,117 @@ int main()
     setupIO();
     randomize();
 
+	int hinverted = 0;
+	int vinverted = 0;
+	int hmoved = 0;
+	int vmoved = 0;
+	uint16_t x = 64;
+	uint16_t y = 120;
+
+	//pick a number between 1 and 2
+
+	uint32_t r;
+    uint32_t one_or_two;
+
+	// car 1 x y and the spped
+	uint16_t car1_x = 70;
+	int car1_y = -40;
+	const int car1_speed = 5;
+
+	const int screen_h = 170; // how tall the screen is
+
+	initClock();
+	initSysTick();
+	setupIO();
+	randomize();
+
+	while (1)
+	{
+		// --- store old positions ---
+		static int old_car1_x = 0;
+		static int old_car1_y = 0;
+		static int old_player_x = 0;
+		static int old_player_y = 0;
+
+		// --- ERASE OLD SPRITES (only the rectangles, not whole screen) ---
+		fillRectangle(old_car1_x, old_car1_y, 50, 36, 0);   // erase enemy car
+		fillRectangle(old_player_x, old_player_y, 50, 36, 0); // erase player car
+
+
+		// move the enemy car down the screen
+		car1_y += car1_speed;
+		loop();
+		if (car1_y > screen_h)
+		{
+			car1_y = -36;
+		}
+
+		loop();
+
+		// random number generator to randomize placement of car across screen
+
+		if (one_or_two == 1)
+		{
+			car1_x = 30;
+		}
+		else
+		{
+			car1_x = 70;
+		}
+
+		menuOpen();
+
+		// draw enemy car t
+		putImage(car1_x, car1_y, 50, 36, car1, 0, 0);
+
+		// draw player car on top
+		putImage(x, y, 50, 36, usercar, 0, 0);
+
+		hmoved = vmoved = 0;
+		hinverted = vinverted = 0;
+
+		if ((GPIOB->IDR & (1 << 4)) == 0) // right pressed
+		{
+			if (x < 90)
+			{
+				x = x + 5;
+				hmoved = 1;
+				hinverted = 0;
+			}
+		}
+		if ((GPIOB->IDR & (1 << 5)) == 0) // left pressed
+		{
+
+			if (x > 10)
+			{
+				x = x - 5;
+				hmoved = 1;
+				hinverted = 1;
+			}
+		}
+		/*
+		// only need left and right because thats all the car is doing
+		if ((GPIOA->IDR & (1 << 11)) == 0) // down pressed
+		{
+			if (y < 140)
+			{
+				y = y + 1;
+				vmoved = 1;
+				vinverted = 0;
+			}
+		}
+		if ((GPIOA->IDR & (1 << 8)) == 0) // up pressed
+		{
+			if (y > 16)
+			{
+				y = y - 1;
+				vmoved = 1;
+				vinverted = 1;
+			}
+		}
+		*/
+		putImage(car1_x, car1_y, 50, 36, car1, 0, 0);
+		putImage(x, y, 50, 36, usercar, 0, 0);
     uint16_t x = 64;
     uint16_t y = 120;
     uint16_t car1_x = 70;
@@ -3854,8 +3965,9 @@ int main()
         // draw both cars
         putImage(car1_x, car1_y, 50, 36, cars[current],    0, 0);
         putImage(x,      y,      50, 36, usercar, 0, 0);
-
+		
 		menuOpen();
+		
         loop(); // update timer
 
 		// collision
@@ -3922,6 +4034,21 @@ int menuOpen(int Open)
 				//releasing the button
 				while (GPIOB->IDR != (1 << 11)) {}
 			}
+
+			//The effects of selecting the options. One will resume and the other restart (Restart function in progress)
+			if ((GPIOB->IDR = GPIOB->IDR && (1 << 8)) && (GPIOB->IDR = GPIOB->IDR && (1 << 11))) {
+				//resuming the game
+				if (selected == 0)
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				// reset function goes here. 
+				return 1;
+			}
+			
 			return 0;
 		}
 	}
