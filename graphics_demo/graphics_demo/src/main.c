@@ -242,8 +242,8 @@ int main()
 			car1_y += 7; //change to make the game faster
 			if (car1_y > 170)
 			{
-				car1_y = -36;
-				car1_x = (prbs() % 2) ? 30 : 70; // random lane
+				car1_y = -36; //where the obstacles start
+				car1_x = (prbs() % 2) ? 30 : 70; // random lane either x = 30 or x = 70
 
 				//this increments the car so after each time it goes off screen it will increment the array and thus change the car
 				current++;
@@ -262,7 +262,7 @@ int main()
     			putImage(x, y, 30, 52, usercarleft, 0, 0); //change to the car left animation
 			} 
 			else {
-    			putImage(x, y, 30, 52, usercar, 0, 0);
+    			putImage(x, y, 30, 52, usercar, 0, 0); // normal 
 			}
 
 			//the padding basically acts as a hitbox for all the different cars based on their dimensions
