@@ -182,8 +182,6 @@ const uint16_t yellow[] = {
 uint32_t gameTime = 0;
 uint32_t lastSecond = 0;
 
-uint32_t highscore = 999;
-
 int main()
 {
     initClock();
@@ -213,10 +211,15 @@ int main()
 		while (GPIOB->IDR & (1 << 4)); // wait for PB4 press
 		fillRectangle(0, 0, 128, 170, 0x0000);
 
+		//draw grass
+		fillRectangle(0,10,10,160,0x001F);
+		fillRectangle(120,0,10,160,0x001F);
+
 		READYGO();
 		// ── GAME LOOP ─────────────────────────────────────────────────
 		while (1)
 		{
+
 			if(current == 0){
 				fillRectangle(car1_x, car1_y, 30, 50, 0x0000); // erase opentop
 			}
@@ -230,19 +233,19 @@ int main()
 				fillRectangle(car1_x, car1_y, 15, 27, 0x0000); // erase bike
 			}
 			else if(current == 4){
-				fillRectangle(car1_x, car1_y, 27, 48, 0x0000); // erase dodge
+				fillRectangle(car1_x, car1_y, 27, 48, 0x0000); // erase yellow
 			}
 
-			fillRectangle(x, y, 34, 52, 0x0000);           // erase player
+			fillRectangle(x, y, 34, 52, 0x0000);// erase player
 
 			// move enemy car down
-			car1_y += 5;
+			car1_y += 7; //change to make the game faster
 			if (car1_y > 170)
 			{
 				car1_y = -36;
 				car1_x = (prbs() % 2) ? 30 : 70; // random lane
 
-				//this increments the car so after each time it goes off screen it will increment the array
+				//this increments the car so after each time it goes off screen it will increment the array and thus change the car
 				current++;
 				if (current >= 5) {
 				current = 0; 
@@ -315,11 +318,16 @@ int main()
 				while (!(GPIOB->IDR & (1 << 4))); // wait for release
 
 				// reset so game is back to normal after you restart
-				x = 64; y = 110;
-				car1_x = 70; car1_y = -40;
+				x = 64; 
+				y = 110;
+				car1_x = 70; 
+				car1_y = -40;
 				gameTime = 0;
 				lastSecond = milliseconds;
 				fillRectangle(0, 0, 128, 170, 0x0000);
+
+				fillRectangle(0,10,10,160,0x001F);
+				fillRectangle(120,0,10,160,0x001F);
 			}
 
 			delay(20);
