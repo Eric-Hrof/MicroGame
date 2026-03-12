@@ -217,8 +217,6 @@ int main()
 		// ── GAME LOOP ─────────────────────────────────────────────────
 		while (1)
 		{
-			putImage(0,0,128,160,roadAnimation1,0,0);
-
 			if(current == 0){
 				fillRectangle(car1_x, car1_y, 30, 50, 0x0000); // erase opentop
 			}
