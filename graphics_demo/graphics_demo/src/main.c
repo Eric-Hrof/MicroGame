@@ -17,6 +17,7 @@ void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void playNote(uint32_t Freq);
 void initSound(void);
 
+//all the sound notes
 #define C0	16
 #define CS0_Db0	17
 #define D0	18
@@ -128,7 +129,7 @@ void initSound(void);
 
 void stopSound(void)
 {
-    TIM14->CR1 &= ~(1 << 0);   // disable timer
+    TIM14->CR1 &= ~(1 << 0);   // disable timer / stop the sound from playing
 }
 
 //imported prbs from io project from brightspace
@@ -184,6 +185,7 @@ uint32_t lastSecond = 0;
 
 int main()
 {
+	//start all clocks
     initClock();
     initSysTick();
     setupIO();
@@ -191,11 +193,13 @@ int main()
 
 	while (1)
 	{
+		// x and y for user and obstacles
 		uint16_t x = 64;
 		uint16_t y = 110;
 		uint16_t car1_x = 70;
 		int car1_y = -40;
 
+		//array of all obstacles
 		const uint16_t* obstacle[] = {opentop,bluecar,cyancar,bike,yellow};
 		int current = 0;
 
@@ -322,10 +326,15 @@ int main()
 				y = 110;
 				car1_x = 70; 
 				car1_y = -40;
+			
+				//reset timer
 				gameTime = 0;
 				lastSecond = milliseconds;
+
+				//clear screen
 				fillRectangle(0, 0, 128, 170, 0x0000);
 
+				//redraw grass
 				fillRectangle(0,10,10,160,0x001F);
 				fillRectangle(120,0,10,160,0x001F);
 			}
@@ -343,7 +352,8 @@ void loop()
 	{
         lastSecond = milliseconds;
         gameTime++;
-        char buffer[16];
+        char buffer[16]; // buffer is an array which looks like this [][][][][][][][][][].. to 16
+		// so the timer is shown as buffer[16] = [T][i][m][e][:][ ][2][4]..[s]
         sprintf(buffer, "Time: %lus", gameTime);
         printText(buffer, 0, 0, 0xFFFF, 0x0000);
     }
