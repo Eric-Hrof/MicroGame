@@ -321,6 +321,9 @@ int main()
 				while (GPIOB->IDR & (1 << 4));  // wait for press
 				while (!(GPIOB->IDR & (1 << 4))); // wait for release
 
+				fillRectangle(0, 0, 128, 170, 0x0000);
+				READYGO();
+
 				// reset so game is back to normal after you restart
 				x = 64; 
 				y = 110;
