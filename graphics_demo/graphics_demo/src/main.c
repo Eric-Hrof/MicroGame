@@ -165,7 +165,7 @@ void hitbox();
 void collision();
 void enemyMov();
 void updateMenu();
-void instructions();
+void settings();
 void menudraw();
 void drawHighlight();
 
@@ -213,7 +213,7 @@ const uint16_t* obstacle[] = {opentop,bluecar,cyancar,bike,yellow,opengreen};
 int current = 0;
 
 //menu items
-const char *items[3] = {"Start Game", "Instructions", "Exit"};
+const char *items[3] = {"Start Game", "Settings", "Exit"};
 
 uint32_t gameTime = 0;
 uint32_t lastSecond = 0;
@@ -251,11 +251,11 @@ int main()
 			
 			fillRectangle(x, y, 34, 52, 0x0000);// erase player
 
-			enemyMov();
+			enemyMov(); //moves the enemy down the screen and increments to different car
 
-			playerMovement();
+			playerMovement(); //player buttons + movement
 
-			hitbox();
+			hitbox(); // set the hitbox depending on the car in play
 
 			loop(); // update timer
 
@@ -469,7 +469,7 @@ void updateMenu(){
 			startGame();
 		}
     	if (menu_stage == 1){
-			instructions();
+			settings();
 		} 
     	if (menu_stage == 2) {
 			startGame();
@@ -478,8 +478,10 @@ void updateMenu(){
 
 	menu();
 }
-void instructions(){
-
+void settings(){
+	//clear screen
+	fillRectangle(0, 0, 128, 170, 0x0000);
+	printText(" ", 10, 20, 0xFFE0, 0x0000);		
 }
 
 //Options for when the menu is paused. This will be opened with the top and bottom button
