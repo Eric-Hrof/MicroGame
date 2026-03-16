@@ -444,6 +444,7 @@ void drawHighlight() {
 }
 
 void menu() {
+	//where the last stage is, so start is at 0, there is no actual stage at -1
     static int last_stage = -1;
 
     if (last_stage == -1) {
@@ -538,35 +539,7 @@ void menuPaused(void)
                     return 0; 
                 } else {
                     // Reset function goes here. (When written)
-					stopSound();
-					//erase whats on the screen
-					fillRectangle(x, y, 30, 52, 0x0000);
-					fillRectangle(car1_x, car1_y, 30, 50, 0x0000);
-					//game over
-					printTextX2("GAME OVER", 5, 60, 0xFFFF, 0x0000);
-					
-					fillRectangle(0, 0, 128, 170, 0x0000);
-					//timing the player's start
-					READYGO();
-
-					// reset so game is back to normal after you restart
-					x = 64; 
-					y = 110;
-					car1_x = 70; 
-					car1_y = -40;
-			
-					//reset timer
-					gameTime = 0;
-					lastSecond = milliseconds;
-
-					//clear screen
-					fillRectangle(0, 0, 128, 170, 0x0000);
-
-					//redraw grass
-					fillRectangle(0,10,10,160,0x001F);
-					fillRectangle(120,0,10,160,0x001F);
-
-					return 1;
+                    return 1;
                 }
             }
         }
