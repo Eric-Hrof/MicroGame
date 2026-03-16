@@ -9,6 +9,7 @@ void initSysTick(void);
 void SysTick_Handler(void);
 void delay(volatile uint32_t dly);
 void setupIO();
+void menuPaused();
 int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
@@ -245,6 +246,9 @@ int main()
 			// collision
 			collision();
 
+			// Menu paused
+			menuPaused();
+
 			delay(20);
 		}
 		return 0;
@@ -409,6 +413,53 @@ void menu(){
 	}
 
 }
+
+//Options for when the menu is paused. This will be opened with the top and bottom button
+void menuPaused(void)
+{
+	// Buttons on GPIOA - pin 8 = bottom button, pin 11 = top button (Needs to be confirmed)
+    // Both buttons pressed simultaneously opens the pause menu
+    if (!(GPIOA->IDR & (1 << 8)) && !(GPIOA->IDR & (1 << 11))) {
+
+        int selected = 0; // 0 = Resume, 1 = Reset
+
+        // Drawing the menu over current game screen
+        fillRectangle(20, 50, 88, 70, 0x0000);
+        printTextX2("PAUSED", 22, 55, RGBToWord(0xff, 0xff, 0), 0);
+
+        // Menu loop. game is paused while this runs
+        while (1) {
+            // Highlighting the selected option in yellow, unselected in white
+            if (selected == 0) {
+                printTextX2("Resume", 22, 80, RGBToWord(0xff, 0xff, 0), 0);
+                printTextX2("Reset",  22, 100, RGBToWord(0xff, 0xff, 0xff), 0);
+            } else {
+                printTextX2("Resume", 22, 80, RGBToWord(0xff, 0xff, 0xff), 0);
+                printTextX2("Reset",  22, 100, RGBToWord(0xff, 0xff, 0), 0);
+            }
+
+            // Pin 8 scrolls selection
+            if (!(GPIOA->IDR & (1 << 8))) {
+                selected = (selected + 1) % 2;
+				// wait for release
+                while (!(GPIOA->IDR & (1 << 8)));
+            }
+
+            // Both buttons pressed is confirming selection
+            if (!(GPIOA->IDR & (1 << 8)) && !(GPIOA->IDR & (1 << 11))) {
+                if (selected == 0) {
+					// Resume - exits menu, game continues
+                    return 0; 
+                } else {
+                    // Reset function goes here. (When written)
+                    return 1;
+                }
+            }
+        }
+    }
+    return -1; // buttons not pressed, menu stays closed
+}
+
 void READYGO()
 { //need to add the LED functions here
 	initSound();
