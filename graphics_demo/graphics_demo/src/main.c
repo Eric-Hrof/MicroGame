@@ -244,7 +244,6 @@ int main()
 		while(start == 0){
 			updateMenu();
 		}
-		startGame(); //start the game
 		// ── GAME LOOP ─────────────────────────────────────────────────
 		while (1)
 		{
@@ -312,7 +311,7 @@ void playerMovement(){
 }
 void enemyMov(){
 			// move enemy car down
-			car1_y += 7; //change to make the game faster
+			car1_y += 5; //change to make the game faster
 			if (car1_y > 170)
 			{
 				car1_y = -36; //where the obstacles start
@@ -515,7 +514,7 @@ void menuPaused(void)
             }
 
             // Both buttons pressed is confirming selection
-            if (!(GPIOA->IDR & (1 << 8)) && !(GPIOA->IDR & (1 << 11))) {
+            if (!(GPIOA->IDR & (1 << 5))) {
                 if (selected == 0) {
 					// Resume - exits menu, game continues
                     return 0; 
