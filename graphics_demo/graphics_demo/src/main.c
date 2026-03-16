@@ -451,6 +451,9 @@ void menu() {
         menudraw();   // draw background + text once
     }
 
+	//if menu stage is not equal to last stage
+	//it should draw the highlight where you are , start,instructions or exit
+	//and then last stage will be changed to where you were last
     if (menu_stage != last_stage) {
         drawHighlight(menu_stage);
         last_stage = menu_stage;
@@ -458,6 +461,7 @@ void menu() {
 }
 
 void updateMenu(){
+	//variables to see if you released the up or down butttons
 	static int up_released = 1;
 	static int down_released = 1;
 
@@ -474,6 +478,7 @@ void updateMenu(){
 	if ((GPIOA->IDR & (1 << 8)) == 0) {         // UP
     	if (up_released) {
         	if (menu_stage > 0) {
+				//decrement menu stage
             	menu_stage =  menu_stage - 1;
         	}
         	up_released = 0;
