@@ -543,7 +543,23 @@ void menuPaused(void)
 					// Resume - exits menu, game continues
                     return 0; 
                 } else {
-                    // Reset function goes here. (When written)
+                    // Reset function goes here.
+					//resetting the car's position
+					x = 64; 
+   					y = 110;
+    				car1_x = 70; 
+    				car1_y = -40;
+    				current = 0;
+					//setting the game time to 0
+    				gameTime = 0;
+					//resetting the time
+    				lastSecond = milliseconds;
+					//clearing the map
+    				fillRectangle(0, 0, 128, 170, 0x0000);
+    				fillRectangle(0,10,10,160,0x001F);
+    				fillRectangle(120,0,10,160,0x001F);
+					//getting the player ready to go
+    				READYGO();
                     return 1;
                 }
             }
