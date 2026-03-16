@@ -457,33 +457,13 @@ void menu() {
 }
 
 void updateMenu(){
-	//variables to see if you released the up or down butttons
-	static int up_released = 1;
-	static int down_released = 1;
+	// Pin 8 scrolls selection
+    if (!(GPIOA->IDR & (1 << 8))) {
+        menu_stage = (menu_stage + 2) % 3;
+		// wait for release
+        while (!(GPIOA->IDR & (1 << 8)));
+    }
 
-	if (((GPIOA->IDR & (1 << 11)) == 0)){ //down
-		if(down_released){
-			//increment menu stage
-			menu_stage = menu_stage + 1;		
-		}
-		down_released = 0;
-	}
-	else{
-	    down_released = 1;	
-	}
-
-	if ((GPIOA->IDR & (1 << 8)) == 0) {         // UP
-    	if (up_released) {
-        	if (menu_stage > 0) {
-				//decrement menu stage
-            	menu_stage =  menu_stage - 1;
-        	}
-        	up_released = 0;
-    		}
-	} 
-	else {
-    	up_released = 1;
-	}
 
 	if (leftPressed()) {
     	if (menu_stage == 0){
