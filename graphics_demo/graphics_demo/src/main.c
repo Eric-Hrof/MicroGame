@@ -282,7 +282,7 @@ void startGame(){
 
 		gameStart();
 
-		//READYGO();
+		READYGO();
 
 		start = 1;
 }
@@ -467,6 +467,7 @@ void updateMenu(){
 
 	if (((GPIOA->IDR & (1 << 11)) == 0)){ //down
 		if(down_released){
+			//increment menu stage
 			menu_stage = menu_stage + 1;		
 		}
 		down_released = 0;
@@ -489,15 +490,15 @@ void updateMenu(){
 	}
 
 	if (leftPressed()) {
-    if (menu_stage == 0){
-		startGame();
-	}
-    if (menu_stage == 1){
-		instructions();
-	} 
-    if (menu_stage == 2) {
-		startGame();
-	}
+    	if (menu_stage == 0){
+			startGame();
+		}
+    	if (menu_stage == 1){
+			instructions();
+		} 
+    	if (menu_stage == 2) {
+			startGame();
+		}
 	}	
 
 	menu();
