@@ -9216,7 +9216,6 @@ int main()
 		while(start == 0){
 			updateMenu();
 		}
-<<<<<<< HEAD
 
 		loop();
 
@@ -9334,9 +9333,6 @@ int menuOpen(int Open)
 		printTextX2("Resume", 10, 40, RGBToWord(0xff, 0xff, 0), 0);
 		printTextX2("Reset", 10, 60, RGBToWord(0xff, 0xff, 0), 0);
 
-=======
-		// ── GAME LOOP ─────────────────────────────────────────────────
->>>>>>> a1e2a6459e60bb1fb2dbc022574063cf2d0cf8e1
 		while (1)
 		{
 			eraseSprites();
