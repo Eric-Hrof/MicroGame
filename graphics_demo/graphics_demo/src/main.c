@@ -11703,25 +11703,25 @@ main()
 			verticalOffset = 0; // Wrap around when at bottom
 		}
 
-		// Draw the road animation with vertical offset
-		const uint16_t *roadAnimation = roadAnimation1;
-		uint16_t rowSize = 50;							  // Width of image
-		uint16_t offsetPixels = verticalOffset * rowSize; // Calculate offset in array
+		// // Draw the road animation with vertical offset
+		// const uint16_t *roadAnimation = roadAnimation1;
+		// uint16_t rowSize = 50;							  // Width of image
+		// uint16_t offsetPixels = verticalOffset * rowSize; // Calculate offset in array
 
-		// Draw road with wrap-around for vertical scrolling
-		if (verticalOffset + 148 <= 148)
-		{
-			// Simple case: no wrapping needed
-			putImage(39, 10, 50, 148 - verticalOffset, (const uint16_t *)((uint32_t)roadAnimation + offsetPixels * 2), 0, 0);
-		}
-		else
-		{
-			// Wrap-around: draw bottom part first, then top part
-			uint16_t heightBottom = 148 - verticalOffset;
-			uint16_t heightTop = verticalOffset;
-			putImage(39, 10, 50, heightBottom, (const uint16_t *)((uint32_t)roadAnimation + offsetPixels * 2), 0, 0);
-			putImage(39, 10 + heightBottom, 50, heightTop, roadAnimation, 0, 0);
-		}
+		// // Draw road with wrap-around for vertical scrolling
+		// if (verticalOffset + 148 <= 148)
+		// {
+		// 	// Simple case: no wrapping needed
+		// 	putImage(39, 10, 50, 148 - verticalOffset, (const uint16_t *)((uint32_t)roadAnimation + offsetPixels * 2), 0, 0);
+		// }
+		// else
+		// {
+		// 	// Wrap-around: draw bottom part first, then top part
+		// 	uint16_t heightBottom = 148 - verticalOffset;
+		// 	uint16_t heightTop = verticalOffset;
+		// 	putImage(39, 10, 50, heightBottom, (const uint16_t *)((uint32_t)roadAnimation + offsetPixels * 2), 0, 0);
+		// 	putImage(39, 10 + heightBottom, 50, heightTop, roadAnimation, 0, 0);
+		// }
 
 		// random number generator to randomize placement of car across screen
 
