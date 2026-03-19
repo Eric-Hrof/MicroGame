@@ -458,7 +458,7 @@ void menu() {
 void updateMenu(){
 	// Pin 8 scrolls selection
     if (!(GPIOA->IDR & (1 << 8))) {
-        menu_stage = (menu_stage + 2) % 3;
+        menu_stage = (menu_stage + 2) % 2;
 		// wait for release
         while (!(GPIOA->IDR & (1 << 8)));
     }
@@ -564,7 +564,7 @@ void READYGO()
 	delay(1000);
 	fillRectangle(64,80,50,50,0x0000);
 
-	stopSound(); 
+	playNote(0);
 }
 void gameStart()
 {
