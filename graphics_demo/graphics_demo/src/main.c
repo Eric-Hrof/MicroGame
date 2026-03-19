@@ -9603,7 +9603,7 @@ void menuPaused(void)
 				// wait for release
                 while (!(GPIOA->IDR & (1 << 9)));
             }
-
+			
             // left button pressed is confirming selection 
             if (!(GPIOA->IDR & (1 << 5))) {
                 if (selected == 0) {
