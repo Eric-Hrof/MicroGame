@@ -9191,6 +9191,9 @@ uint32_t selected = 0;
 uint8_t leftPressed() {
     return ((GPIOB->IDR & (1 << 5)) == 0);
 }
+uint8_t menuPressed() {
+    return ((GPIOA->IDR & (1 << 9)) == 0);
+}
 
 int start = 0;
 int menu_stage = 0;
@@ -9213,34 +9216,7 @@ int main()
 		while(start == 0){
 			updateMenu();
 		}
-
-		loop();
-
-		// death message if the car x = the user x and same for y
-		if (x < car1_x + 25 && x + 30 > car1_x && y < car1_y + 26 && y + 26 > car1_y)
-		{
-			// show centered death message (printTextX2 needs Fore and Back colours)
-			printText("GAME OVER", 40, 60, 0xFFFF, 0x0000);
-			break;
-		}
-
-		delay(50);
-	}
-	return 0;
-}
-
-// menu opening function. Top and Bottom button pressed at same time opens the menu.
-int menuOpen(int Open)
-{
-	// Bit 8 == Bottom button / Bit 11 == Top button
-	if (!(GPIOB->IDR & (1 << 8)) && !(GPIOB->IDR & (1 << 11)))
-	{
-		int selected = 0; // 0 = resume , 1 = reset
-		delay(10000);
-		printTextX2("Menu", 10, 20, RGBToWord(0xff, 0xff, 0), 0);
-		printTextX2("Resume", 10, 40, RGBToWord(0xff, 0xff, 0), 0);
-		printTextX2("Reset", 10, 60, RGBToWord(0xff, 0xff, 0), 0);
-
+		// ── GAME LOOP ─────────────────────────────────────────────────
 		while (1)
 		{
 			eraseSprites();
@@ -9504,13 +9480,40 @@ void menuPaused(void)
                 printTextX2("Reset",  22, 100, RGBToWord(0xff, 0xff, 0), 0);
             }
 
-            // Pin 8 scrolls selection
+            // Pin 9 scrolls selection
             if (!(GPIOA->IDR & (1 << 9))) {
                 selected = (selected + 1) % 2;
 				// wait for release
                 while (!(GPIOA->IDR & (1 << 9)));
             }
 
+			if (menuPressed) {
+				if (selected == 0)
+				{
+					startGame();
+					return 0;
+				}
+				if (selected == 1) 
+				{
+					x = 64; 
+   					y = 110;
+    				car1_x = 70; 
+    				car1_y = -40;
+    				current = 0;
+					//setting the game time to 0
+    				gameTime = 0;
+					//resetting the time
+    				lastSecond = milliseconds;
+					//clearing the map
+    				fillRectangle(0, 0, 128, 170, 0x0000);
+    				fillRectangle(0,10,10,160,0x001F);
+    				fillRectangle(120,0,10,160,0x001F);
+					//getting the player ready to go
+    				READYGO();
+                    return 1;
+				}
+			}
+			/*
             // left button pressed is confirming selection 
             if (!(GPIOA->IDR & (1 << 5))) {
                 if (selected == 0) {
@@ -9539,9 +9542,12 @@ void menuPaused(void)
                 }
             }
         }
+			*/
     }
     return -1; // buttons not pressed, menu stays closed
+	}
 }
+
 
 void READYGO()
 { //need to add the LED functions here
