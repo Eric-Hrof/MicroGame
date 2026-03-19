@@ -487,9 +487,9 @@ void settings(){
 //Options for when the menu is paused. This will be opened with the top and bottom button
 void menuPaused(void)
 {
-	// Buttons on GPIOA - pin 8 = bottom button, pin 11 = top button (Needs to be confirmed)
-    // Both buttons pressed simultaneously opens the pause menu
-    if (!(GPIOA->IDR & (1 << 8)) && !(GPIOA->IDR & (1 << 11))) {
+	// Button on GPIOA 9 acts as the menu button pin
+    // button pressed is used for activating the menu and exiting it
+    if (!(GPIOA->IDR & (1 << 9))) {
 
         int selected = 0; // 0 = Resume, 1 = Reset
 
@@ -509,16 +509,17 @@ void menuPaused(void)
             }
 
             // Pin 8 scrolls selection
-            if (!(GPIOA->IDR & (1 << 8))) {
+            if (!(GPIOA->IDR & (1 << 9))) {
                 selected = (selected + 1) % 2;
 				// wait for release
-                while (!(GPIOA->IDR & (1 << 8)));
+                while (!(GPIOA->IDR & (1 << 9)));
             }
 
-            // Both buttons pressed is confirming selection
+            // left button pressed is confirming selection 
             if (!(GPIOA->IDR & (1 << 5))) {
                 if (selected == 0) {
 					// Resume - exits menu, game continues
+					startGame();
                     return 0; 
                 } else {
                     // Reset function goes here.
