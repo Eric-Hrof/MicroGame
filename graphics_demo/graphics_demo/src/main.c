@@ -9453,7 +9453,7 @@ void settings(){
 	printText(" ", 10, 20, 0xFFE0, 0x0000);		
 }
 
-//Options for when the menu is paused. This will be opened with the top and bottom button
+//Options for when the menu is paused. This will be opened with a seperate menu button
 void menuPaused(void)
 {
 	// Button on GPIOA 9 acts as the menu button pin
