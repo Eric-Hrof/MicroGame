@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "display.h"
-//#include "serial.h"
+#include "serial.h"
 
 
 void initClock(void);
@@ -11,7 +11,6 @@ void initSysTick(void);
 void SysTick_Handler(void);
 void delay(volatile uint32_t dly);
 void setupIO();
-//void menuPaused();
 int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
@@ -166,6 +165,8 @@ void settings();
 void menudraw();
 void drawHighlight();
 void drawRoadLine();
+
+char getSerialInput(void);
 
 //traffic lights
 void redOn(void);
@@ -9225,7 +9226,9 @@ int main()
     initSysTick();
     setupIO();
     randomize();
-	
+	initSerial();
+	eputs("Entering menu...\r\n");
+
 	while (1)
 	{
 		gameTime = 0; 
@@ -9238,7 +9241,6 @@ int main()
 		while (1)
 
 		{
-
 			eraseSprites();
 			
 			fillRectangle(x, y, 34, 52, 0x0000);// erase player
@@ -9246,8 +9248,6 @@ int main()
 			drawRoadLine();
 
 			enemyMov(); //moves the enemy down the screen and increments to different car
-
-			//serialInput();
 
 			playerMovement(); //player buttons + movement
 
@@ -9279,7 +9279,6 @@ void startGame(){
 //timer loop
 void loop()
 {
-
     if (milliseconds - lastSecond >= 1000)
 	{
         lastSecond = milliseconds;
@@ -9319,19 +9318,27 @@ void greenOff()
 
 
 void playerMovement(){
-			// player input
-			if (!(GPIOB->IDR & (1 << 4)) && x < 80) {
-    			x += 5; // right
-    			putImage(x, y, 30, 52, usercarright, 0, 0); //change to the car right animation
-			} 
-			else if (!(GPIOB->IDR & (1 << 5)) && x > 20) {
-    			x -= 5; // left
-    			putImage(x, y, 30, 52, usercarleft, 0, 0); //change to the car left animation
-			} 
-			else {
-    			putImage(x, y, 30, 52, usercar, 0, 0); // normal 
-			}
-
+	char in = getSerialInput();
+	// player input
+	if ( ( !(GPIOB->IDR & (1 << 4)) ) && x < 80 ) {
+		x += 5;
+		putImage(x, y, 30, 52, usercarright, 0, 0);
+	}
+	else if ( ( !(GPIOB->IDR & (1 << 5)) ) && x > 20 ) {
+		x -= 5;
+		putImage(x, y, 30, 52, usercarleft, 0, 0);
+	}
+	else {
+		putImage(x, y, 30, 52, usercar, 0, 0);
+	}
+}
+char getSerialInput(void)
+{
+	char serial_char;
+	if (serial_available())
+		serial_char = egetchar();
+	else
+		serial_char = 0;
 }
 
 void drawRoadLine(){
@@ -9403,6 +9410,7 @@ void collision(){
 			if (x < car1_x + padding_x && x + padding_x > car1_x &&
 				y < car1_y + padding_y && y + padding_y > car1_y)
 			{
+				eputs("AHHHHH!!!!\r\n");
 				playNote(0);
 				//erase whats on the screen
 				fillRectangle(x, y, 30, 52, 0x0000);
@@ -9499,15 +9507,17 @@ void menu() {
 }
 
 void updateMenu(){
+	char in = getSerialInput();
+
 	// Pin 8 scrolls selection
-    if (!(GPIOA->IDR & (1 << 8))) {
+    if (!(GPIOA->IDR & (1 << 8)) || in =='w') {
         menu_stage = (menu_stage + 2) % 3;
 		// wait for release
-        while (!(GPIOA->IDR & (1 << 8)));
+        while (!(GPIOA->IDR & (1 << 8)) || in != 'w');
     }
 
 
-	if (leftPressed()) {
+	if (leftPressed() || in == 'a') {
     	if (menu_stage == 0){
 			startGame();
 		}
@@ -9522,14 +9532,32 @@ void updateMenu(){
 	menu();
 }
 void settings(){
+	char in = getSerialInput();
 	//clear screen
 	fillRectangle(0, 0, 128, 170, 0x0000);
-	printText(" Use a d or <- -> ", 10, 20, 0xFFE0, 0x0000);
-	printText(" To move left + right ", 10, 40, 0xFFE0, 0x0000);		
+	eputs("Settings opened\r\n");
+	printText(" Use a d ", 10, 20, 0xFFE0, 0x0000);
+	printText(" or <- -> ", 10, 40, 0xFFE0, 0x0000);
+	printText(" To move left ", 10, 60, 0xFFE0, 0x0000);		
+	printText(" + right ", 10, 80, 0xFFE0, 0x0000);		
 
+	// Detect press
+	if ((GPIOA->IDR & (1 << 8)) || in == 'w') {
+
+		// Wait for release (debounce)
+		while (GPIOA->IDR & (1 << 8) || in != 'w' );
+
+		// Action on press
+		fillRectangle(0, 0, 128, 170, 0x0000);
+	}
+
+
+	
 }
 void READYGO()
 {
+	eputs("Countdown started\r\n");
+
     initSound();
 
     // === 3 === red color
