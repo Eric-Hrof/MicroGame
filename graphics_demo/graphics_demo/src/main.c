@@ -128,11 +128,6 @@ void initSound(void);
 #define AS8_Bb8 7459
 #define B8 7902
 
-void stopSound(void)
-{
-	TIM14->CR1 &= ~(1 << 0); // disable timer / stop the sound from playing
-}
-
 // imported prbs from io project from brightspace
 uint32_t shift_register = 0;
 void randomize(void)
@@ -9217,7 +9212,7 @@ int main()
     initSysTick();
     setupIO();
     randomize();
-
+	
 	while (1)
 	{
 
@@ -9230,6 +9225,7 @@ int main()
 		// ── GAME LOOP ─────────────────────────────────────────────────
 		while (1)
 		{
+
 			eraseSprites();
 			
 			fillRectangle(x, y, 34, 52, 0x0000);// erase player
@@ -9281,28 +9277,28 @@ void loop()
 }
 void redOn()
 {
-    GPIOA->ODR |= (1 << 4);
+    GPIOA->ODR |= (1 << 3);
 }
 void redOff()
 {
-    GPIOA->ODR &= ~(1 << 4);
+    GPIOA->ODR &= ~(1 << 3);
 }
 
 void yellowOn()
 {
-    GPIOA->ODR |= (1 << 3);
+    GPIOA->ODR |= (1 << 4);
 }
 void yellowOff()
 {
-    GPIOA->ODR &= ~(1 << 3);
+    GPIOA->ODR &= ~(1 << 4);
 }
 void greenOn()
 {
-    GPIOA->ODR |= (1 << 1);
+    GPIOA->ODR |= (1 << 5);
 }
 void greenOff()
 {
-    GPIOA->ODR &= ~(1 << 1);
+    GPIOA->ODR &= ~(1 << 5);
 }
 
 
@@ -9607,28 +9603,54 @@ void menuPaused(void)
     return -1; // buttons not pressed, menu stays closed
 	}
 }
-
-
 void READYGO()
-{ //need to add the LED functions here
-	initSound();
-	delay(1000);
-	printTextX2("3",64, 80, RGBToWord(255, 80, 0), 0x0000);
-	playNote(C4);
-	delay(1000);
-	printTextX2("2",64, 80, RGBToWord(255, 80, 0), 0x0000);
-	playNote(E4);
-	delay(1000);
-	printTextX2("1",64, 80, RGBToWord(255, 80, 0), 0x0000);
-	playNote(G4);
-	delay(1000);
-	printTextX2("GO!!",64, 80, RGBToWord(255, 80, 0), 0x0000);
-	playNote(E6);
-	delay(1000);
-	fillRectangle(64,80,50,50,0x0000);
+{
+    initSound();
+    uint32_t start;
 
-	playNote(0);
+    // === 3 ===
+    start = milliseconds;
+    redOn();
+    yellowOff();
+    greenOff();
+    printTextX2("3", 64, 80, RGBToWord(255, 80, 0), 0x0000);
+    playNote(C4);
+    while (milliseconds - start < 1000);
+
+    // === 2 ===
+    start = milliseconds;
+    redOn();
+    yellowOn();
+    greenOff();
+    printTextX2("2", 64, 80, RGBToWord(255, 80, 0), 0x0000);
+    playNote(E4);
+    while (milliseconds - start < 1000);
+
+    // === 1 ===
+    start = milliseconds;
+    redOff();
+    yellowOff();
+    greenOn();
+    printTextX2("1", 64, 80, RGBToWord(255, 80, 0), 0x0000);
+    playNote(G4);
+    while (milliseconds - start < 1000);
+
+    // === GO ===
+    start = milliseconds;
+    redOff();
+    yellowOff();
+    greenOff();
+    printTextX2("GO!!", 64, 80, RGBToWord(255, 80, 0), 0x0000);
+    playNote(E6);
+    while (milliseconds - start < 1000);
+
+    // Clear the text
+    fillRectangle(64, 80, 50, 50, 0x0000);
+    playNote(0);
 }
+
+
+
 void gameStart()
 {
 		while (GPIOB->IDR & (1 << 4)); // wait for PB4 press
