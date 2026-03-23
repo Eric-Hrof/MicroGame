@@ -3,16 +3,19 @@
 #include <stdio.h>
 #include <time.h>
 #include "display.h"
+//#include "serial.h"
+
 
 void initClock(void);
 void initSysTick(void);
 void SysTick_Handler(void);
 void delay(volatile uint32_t dly);
 void setupIO();
-void menuPaused();
+//void menuPaused();
 int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
+
 
 // sound.h from brightspace
 void playNote(uint32_t Freq);
@@ -9205,6 +9208,16 @@ int menu_stage = 0;
 int yellowLine_y = -14;
 int delete_y = -28;
 
+//background music
+uint32_t *background_tune_notes;
+uint32_t *background_tune_times;
+uint32_t background_tune_note_count;
+uint32_t background_repeat_tune;
+
+const uint32_t my_notes[]={A4,C3,B5,D3,F2};
+const uint32_t my_note_times[]={200,100,300,200,500};
+
+
 int main()
 {
 	//start all clocks
@@ -9215,7 +9228,6 @@ int main()
 	
 	while (1)
 	{
-
 		gameTime = 0; 
 		lastSecond = milliseconds;       // sync to current time
 	
@@ -9224,6 +9236,7 @@ int main()
 		}
 		// ── GAME LOOP ─────────────────────────────────────────────────
 		while (1)
+
 		{
 
 			eraseSprites();
@@ -9234,6 +9247,8 @@ int main()
 
 			enemyMov(); //moves the enemy down the screen and increments to different car
 
+			//serialInput();
+
 			playerMovement(); //player buttons + movement
 
 			hitbox(); // set the hitbox depending on the car in play
@@ -9243,28 +9258,28 @@ int main()
 			// collision
 			collision();
 
-			// Menu paused
-			menuPaused();
-
 			delay(20);
 		}
 		return 0;
 	}
 }
 void startGame(){
-		fillRectangle(0, 0, 128, 170, 0x0000);
-		printText("TRAFFIC RACER", 5, 60, RGBToWord(255, 80, 0), 0x0000);
-		printText("Press -> to start", 2, 120, 0xFFFF, 0x0000);
+    fillRectangle(0, 0, 128, 170, 0x0000);
+    printText("TRAFFIC RACER", 5, 60, RGBToWord(255, 80, 0), 0x0000);
+    printText("Press -> to start", 2, 120, 0xFFFF, 0x0000);
 
-		gameStart();
+    gameStart();  // ← waits for button press, clears screen, draws grass
+    READYGO();    // ← countdown plays
 
-		READYGO();
+	fillRectangle(0,10,10,160,0x001F);
+	fillRectangle(120,0,10,160,0x001F);
 
-		start = 1;
+    start = 1;    
 }
 //timer loop
 void loop()
 {
+
     if (milliseconds - lastSecond >= 1000)
 	{
         lastSecond = milliseconds;
@@ -9275,30 +9290,31 @@ void loop()
         printText(buffer, 0, 0, 0xFFFF, 0x0000);
     }
 }
+
 void redOn()
 {
-    GPIOA->ODR |= (1 << 3);
+    GPIOB->ODR |= (1 << 3);
 }
 void redOff()
 {
-    GPIOA->ODR &= ~(1 << 3);
+    GPIOB->ODR &= ~(1 << 3);
 }
 
 void yellowOn()
 {
-    GPIOA->ODR |= (1 << 4);
+    GPIOA->ODR |= (1 << 4);   // PB0
 }
 void yellowOff()
 {
-    GPIOA->ODR &= ~(1 << 4);
+    GPIOA->ODR &= ~(1 << 4);  // PB0
 }
 void greenOn()
 {
-    GPIOA->ODR |= (1 << 5);
+    GPIOA->ODR |= (1 << 2);
 }
 void greenOff()
 {
-    GPIOA->ODR &= ~(1 << 5);
+    GPIOA->ODR &= ~(1 << 2);
 }
 
 
@@ -9317,6 +9333,7 @@ void playerMovement(){
 			}
 
 }
+
 void drawRoadLine(){
     // Draw the line
     putImage(65, yellowLine_y, 5, 13, yellowLine, 0, 0);
@@ -9328,7 +9345,7 @@ void drawRoadLine(){
     yellowLine_y += 5;
     delete_y += 5;
 
-    // Wrap
+    // Wrap the road line back to top
     if (yellowLine_y > 170){
         yellowLine_y = -14;
     }
@@ -9353,6 +9370,7 @@ void enemyMov(){
 			}
 }
 void hitbox(){
+		//hit box for each car, will switch depending on what car it is on
 			if(current == 0){
 				putImage(car1_x, car1_y, 30, 50, obstacle[current], 0, 0); //open top
 				padding_x = 25;
@@ -9385,7 +9403,7 @@ void collision(){
 			if (x < car1_x + padding_x && x + padding_x > car1_x &&
 				y < car1_y + padding_y && y + padding_y > car1_y)
 			{
-				stopSound();
+				playNote(0);
 				//erase whats on the screen
 				fillRectangle(x, y, 30, 52, 0x0000);
 				fillRectangle(car1_x, car1_y, 30, 50, 0x0000);
@@ -9443,9 +9461,6 @@ void eraseSprites(){
 	else if(current == 4){
 		fillRectangle(car1_x, car1_y, 27, 48, 0x0000); // erase yellow
 	}
-	//else if(current == 5){
-		//fillRectangle(car1_x, car1_y, 30, 50, 0x0000); // erase opengreen
-	//}
 }
 
 void menudraw() {
@@ -9509,148 +9524,55 @@ void updateMenu(){
 void settings(){
 	//clear screen
 	fillRectangle(0, 0, 128, 170, 0x0000);
-	printText(" ", 10, 20, 0xFFE0, 0x0000);		
-}
+	printText(" Use a d or <- -> ", 10, 20, 0xFFE0, 0x0000);
+	printText(" To move left + right ", 10, 40, 0xFFE0, 0x0000);		
 
-//Options for when the menu is paused. This will be opened with a seperate menu button
-void menuPaused(void)
-{
-	// Button on GPIOA 9 acts as the menu button pin
-    // button pressed is used for activating the menu and exiting it
-    if (!(GPIOA->IDR & (1 << 9))) {
-
-        int selected = 0; // 0 = Resume, 1 = Reset
-
-        // Drawing the menu over current game screen
-        fillRectangle(20, 50, 88, 70, 0x0000);
-        printTextX2("PAUSED", 22, 55, RGBToWord(0xff, 0xff, 0), 0);
-
-        // Menu loop. game is paused while this runs
-        while (1) {
-            // Highlighting the selected option in yellow, unselected in white
-            if (selected == 0) {
-                printTextX2("Resume", 22, 80, RGBToWord(0xff, 0xff, 0), 0);
-                printTextX2("Reset",  22, 100, RGBToWord(0xff, 0xff, 0xff), 0);
-            } else {
-                printTextX2("Resume", 22, 80, RGBToWord(0xff, 0xff, 0xff), 0);
-                printTextX2("Reset",  22, 100, RGBToWord(0xff, 0xff, 0), 0);
-            }
-
-            // Pin 9 scrolls selection
-            if (!(GPIOA->IDR & (1 << 9))) {
-                selected = (selected + 1) % 2;
-				// wait for release
-                while (!(GPIOA->IDR & (1 << 9)));
-            }
-
-			if (menuPressed) {
-				if (selected == 0)
-				{
-					startGame();
-					return 0;
-				}
-				if (selected == 1) 
-				{
-					x = 64; 
-   					y = 110;
-    				car1_x = 70; 
-    				car1_y = -40;
-    				current = 0;
-					//setting the game time to 0
-    				gameTime = 0;
-					//resetting the time
-    				lastSecond = milliseconds;
-					//clearing the map
-    				fillRectangle(0, 0, 128, 170, 0x0000);
-    				fillRectangle(0,10,10,160,0x001F);
-    				fillRectangle(120,0,10,160,0x001F);
-					//getting the player ready to go
-    				READYGO();
-                    return 1;
-				}
-			}
-			/*
-            // left button pressed is confirming selection 
-            if (!(GPIOA->IDR & (1 << 5))) {
-                if (selected == 0) {
-					// Resume - exits menu, game continues
-					startGame();
-                    return 0; 
-                } else {
-                    // Reset function goes here.
-					//resetting the car's position
-					x = 64; 
-   					y = 110;
-    				car1_x = 70; 
-    				car1_y = -40;
-    				current = 0;
-					//setting the game time to 0
-    				gameTime = 0;
-					//resetting the time
-    				lastSecond = milliseconds;
-					//clearing the map
-    				fillRectangle(0, 0, 128, 170, 0x0000);
-    				fillRectangle(0,10,10,160,0x001F);
-    				fillRectangle(120,0,10,160,0x001F);
-					//getting the player ready to go
-    				READYGO();
-                    return 1;
-                }
-            }
-        }
-			*/
-    }
-    return -1; // buttons not pressed, menu stays closed
-	}
 }
 void READYGO()
 {
     initSound();
-    uint32_t start;
 
-    // === 3 ===
-    start = milliseconds;
+    // === 3 === red color
     redOn();
     yellowOff();
     greenOff();
-    printTextX2("3", 64, 80, RGBToWord(255, 80, 0), 0x0000);
+    fillRectangle(0, 0, 128, 170, 0x0000);
+    printTextX2("3", 54, 80, 0xF800, 0x0000);  // bright red
     playNote(C4);
-    while (milliseconds - start < 1000);
+    delay(1000);
 
-    // === 2 ===
-    start = milliseconds;
-    redOn();
-    yellowOn();
-    greenOff();
-    printTextX2("2", 64, 80, RGBToWord(255, 80, 0), 0x0000);
-    playNote(E4);
-    while (milliseconds - start < 1000);
+	// === 2 ===
+	fillRectangle(0, 0, 128, 170, 0x0000);
 
-    // === 1 ===
-    start = milliseconds;
+	redOn();
+	yellowOn();
+	greenOff();
+
+	printTextX2("A", 54, 80, 0x07E0, 0x0000);
+	playNote(E4);
+	delay(1000);
+
+    // === 1 === blue color
     redOff();
     yellowOff();
     greenOn();
-    printTextX2("1", 64, 80, RGBToWord(255, 80, 0), 0x0000);
+    fillRectangle(0, 0, 128, 170, 0x0000);
+    printTextX2("1", 54, 80, 0x001F, 0x0000);  // bright blue
     playNote(G4);
-    while (milliseconds - start < 1000);
+    delay(1000);
 
-    // === GO ===
-    start = milliseconds;
+    // === GO === white
     redOff();
     yellowOff();
     greenOff();
-    printTextX2("GO!!", 64, 80, RGBToWord(255, 80, 0), 0x0000);
+    fillRectangle(0, 0, 128, 170, 0x0000);
+    printTextX2("GO!!", 34, 80, 0xFFFF, 0x0000);  // white
     playNote(E6);
-    while (milliseconds - start < 1000);
+    delay(1000);
 
-    // Clear the text
-    fillRectangle(64, 80, 50, 50, 0x0000);
+    fillRectangle(0, 0, 128, 170, 0x0000);
     playNote(0);
 }
-
-
-
 void gameStart()
 {
 		while (GPIOB->IDR & (1 << 4)); // wait for PB4 press
@@ -9668,10 +9590,46 @@ void initSysTick(void)
 	SysTick->VAL = 10;
 	__asm(" cpsie i "); // enable interrupts
 }
+
 void SysTick_Handler(void)
 {
 	milliseconds++;
+	static int index=0;
+	static int current_note_timer;
+	// background tune handling
+	if (background_tune_notes != 0)
+	{
+		// if there is a tune...
+		if (current_note_timer == 0)
+		{
+			// .. move on to the next note (if there is one)
+			index++;
+			if (index >= background_tune_note_count)
+			{
+				// no more notes.
+				if (background_repeat_tune == 0)
+				{
+					// don't repeat
+					background_tune_notes = 0;
+				}
+				else
+				{
+					// reset to first note and repeat...
+					index = 0;
+				}
+			}
+			else
+			{
+				current_note_timer = background_tune_times[index];
+				playNote(background_tune_notes[index]);
+			}
+
+		}
+		if (current_note_timer != 0)
+			current_note_timer -- ;
+	}
 }
+
 void initClock(void)
 {
 	// This is potentially a dangerous function as it could
@@ -9703,11 +9661,13 @@ void initClock(void)
 }
 void delay(volatile uint32_t dly)
 {
-	uint32_t end_time = dly + milliseconds;
-	while (milliseconds != end_time)
-		__asm(" wfi "); // sleep
-}
+    uint32_t end_time = milliseconds + dly;
 
+    while (milliseconds < end_time)
+    {
+        __asm(" wfi "); // sleep until next interrupt
+    }
+}
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber)
 {
 	Port->PUPDR = Port->PUPDR & ~(3u << BitNumber * 2); // clear pull-up resistor bits
@@ -9741,14 +9701,27 @@ int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint
 
 void setupIO()
 {
-	RCC->AHBENR |= (1 << 18) + (1 << 17); // enable Ports A and B
-	display_begin();
-	pinMode(GPIOB, 4, 0);
-	pinMode(GPIOB, 5, 0);
-	pinMode(GPIOA, 8, 0);
-	pinMode(GPIOA, 11, 0);
-	enablePullUp(GPIOB, 4);
-	enablePullUp(GPIOB, 5);
-	enablePullUp(GPIOA, 11);
-	enablePullUp(GPIOA, 8);
+RCC->AHBENR |= (1 << 18) + (1 << 17);
+
+    // Configure LED pins as outputs BEFORE display_begin
+    pinMode(GPIOB, 3, 1);  // red   PB3
+    pinMode(GPIOA, 4, 1);  // yellow PA7
+    pinMode(GPIOA, 2, 1);  // green  PA2
+
+    // Make sure all LEDs start OFF
+    GPIOB->ODR &= ~(1 << 3);
+    GPIOA->ODR &= ~(1 << 4);
+    GPIOA->ODR &= ~(1 << 2);
+
+    display_begin();
+
+    pinMode(GPIOB, 4, 0);
+    pinMode(GPIOB, 5, 0);
+    pinMode(GPIOA, 8, 0);
+    pinMode(GPIOA, 11, 0);
+    enablePullUp(GPIOB, 4);
+    enablePullUp(GPIOB, 5);
+    enablePullUp(GPIOA, 11);
+    enablePullUp(GPIOA, 8);
+
 }
