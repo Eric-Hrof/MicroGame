@@ -9190,7 +9190,7 @@ const uint16_t* obstacle[] = {opentop,bluecar,cyancar,bike,yellow};
 int current = 0;
 
 //menu items
-const char *items[3] = {"Start Game", "Settings", "Exit"};
+const char *items[3] = {"Start Game", "Instructions", "Settings"};
 
 uint32_t gameTime = 0;
 uint32_t lastSecond = 0;
@@ -9241,6 +9241,7 @@ int main()
 		while (1)
 
 		{
+			SysTick_Handler();
 			eraseSprites();
 			
 			fillRectangle(x, y, 34, 52, 0x0000);// erase player
@@ -9309,11 +9310,11 @@ void yellowOff()
 }
 void greenOn()
 {
-    GPIOA->ODR |= (1 << 2);
+    GPIOA->ODR |= (1 << 0);
 }
 void greenOff()
 {
-    GPIOA->ODR &= ~(1 << 2);
+    GPIOA->ODR &= ~(1 << 0);
 }
 
 
@@ -9334,11 +9335,9 @@ void playerMovement(){
 }
 char getSerialInput(void)
 {
-	char serial_char;
-	if (serial_available())
-		serial_char = egetchar();
-	else
-		serial_char = 0;
+    if (serial_available())
+        return egetchar();
+    return 0;
 }
 
 void drawRoadLine(){
@@ -9509,12 +9508,17 @@ void menu() {
 void updateMenu(){
 	char in = getSerialInput();
 
-	// Pin 8 scrolls selection
-    if (!(GPIOA->IDR & (1 << 8)) || in =='w') {
-        menu_stage = (menu_stage + 2) % 3;
+	if (!(GPIOA->IDR & (1 << 8)) || in == 'w') {
+		menu_stage = (menu_stage + 2) % 3;
+
 		// wait for release
-        while (!(GPIOA->IDR & (1 << 8)) || in != 'w');
-    }
+		if (!(GPIOA->IDR & (1 << 8))) {
+			while (!(GPIOA->IDR & (1 << 8)));   // wait until button released
+		}
+		if (in == 'w') {
+			while (getSerialInput() == 'w');    // wait until key released
+    	}
+	}
 
 
 	if (leftPressed() || in == 'a') {
@@ -9522,36 +9526,40 @@ void updateMenu(){
 			startGame();
 		}
     	if (menu_stage == 1){
-			settings();
+			instructions();
 		} 
     	if (menu_stage == 2) {
-			startGame();
+			settings();
 		}
 	}	
 
 	menu();
 }
 void settings(){
+
+}
+
+void instructions(){
 	char in = getSerialInput();
 	//clear screen
 	fillRectangle(0, 0, 128, 170, 0x0000);
-	eputs("Settings opened\r\n");
+	eputs("Instructions opened\r\n");
 	printText(" Use a d ", 10, 20, 0xFFE0, 0x0000);
 	printText(" or <- -> ", 10, 40, 0xFFE0, 0x0000);
 	printText(" To move left ", 10, 60, 0xFFE0, 0x0000);		
 	printText(" + right ", 10, 80, 0xFFE0, 0x0000);		
 
-	// Detect press
 	if ((GPIOA->IDR & (1 << 8)) || in == 'w') {
 
-		// Wait for release (debounce)
-		while (GPIOA->IDR & (1 << 8) || in != 'w' );
+    // Wait for physical button release only
+    while (GPIOA->IDR & (1 << 8));
 
-		// Action on press
-		fillRectangle(0, 0, 128, 170, 0x0000);
-	}
+    // Clear the serial input so it doesn't trap you
+    in = 0;
 
-
+	eputs("Instructions closed\r\n");
+    fillRectangle(0, 0, 128, 170, 0x0000);
+}
 	
 }
 void READYGO()
@@ -9734,12 +9742,12 @@ RCC->AHBENR |= (1 << 18) + (1 << 17);
     // Configure LED pins as outputs BEFORE display_begin
     pinMode(GPIOB, 3, 1);  // red   PB3
     pinMode(GPIOA, 4, 1);  // yellow PA7
-    pinMode(GPIOA, 2, 1);  // green  PA2
+    pinMode(GPIOA, 0, 1);  // green  PA2
 
     // Make sure all LEDs start OFF
     GPIOB->ODR &= ~(1 << 3);
     GPIOA->ODR &= ~(1 << 4);
-    GPIOA->ODR &= ~(1 << 2);
+    GPIOA->ODR &= ~(1 << 0);
 
     display_begin();
 

@@ -75,4 +75,3 @@ int serial_available(void)
 	else
 		return 1;
 }
-
