@@ -165,7 +165,7 @@ void settings();
 void menudraw();
 void drawHighlight();
 void drawRoadLine();
-
+void resetMenu();
 char getSerialInput(void);
 
 //traffic lights
@@ -9175,6 +9175,9 @@ const uint16_t yellow[] = {
 const uint16_t yellowLine[] = {
 	24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,24325,
 };
+const uint16_t icon[] = {
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16384,16384,16384,16384,16384,16384,16384,16384,0,0,0,0,0,0,0,0,0,0,0,24856,35226,51610,51610,59802,16384,59802,59802,2459,24864,0,0,0,0,0,0,0,0,0,0,24063,56831,56575,56575,64767,16384,64767,56575,64767,7679,32768,0,0,0,0,0,0,0,0,264,48895,49151,49151,49151,57343,16384,56575,56575,56575,24055,32768,0,0,0,0,0,8448,49168,40968,50577,50321,24584,32776,32776,24584,24584,32776,24584,24584,24584,24584,32776,25088,0,0,32768,65383,18074,26266,26274,26266,26266,26266,26266,26266,26266,26266,26266,26266,26266,26266,26266,56096,32768,0,0,34466,18082,26266,26266,26266,26266,26266,26266,26266,26266,26266,26266,26266,26266,26266,26274,18074,32768,0,16384,17810,8192,0,0,18049,18082,26266,26266,26266,18074,50545,8192,8192,24576,9882,26266,26266,32768,0,8200,25152,9249,26690,18498,8192,25745,17553,9361,17553,17553,32768,51522,51522,1057,33897,1425,17553,32768,0,0,16384,9249,58392,1057,0,0,0,0,0,8192,32768,1057,1057,17441,8192,0,24576,0,0,0,0,8192,0,0,0,0,0,0,0,0,0,8192,8192,256,0,0,0,0,
+};
 
 uint32_t x = 64;
 uint32_t y = 110;
@@ -9186,11 +9189,11 @@ int padding_x = 0; //left and right
 int padding_y = 0; //up and down
 
 //array of all obstacles
-const uint16_t* obstacle[] = {opentop,bluecar,cyancar,bike,yellow};
+const uint16_t* obstacle[] = {opentop,bluecar,cyancar,bike,yellow}; 
 int current = 0;
 
 //menu items
-const char *items[3] = {"Start Game", "Instructions", "Settings"};
+const char *items[3] = {"Start Game", "Instructions", "Settings"}; 
 
 uint32_t gameTime = 0;
 uint32_t lastSecond = 0;
@@ -9202,12 +9205,17 @@ uint8_t leftPressed() {
 uint8_t menuPressed() {
     return ((GPIOA->IDR & (1 << 9)) == 0);
 }
-
+uint8_t select_button(){
+	return ((GPIOA->IDR & (1 << 10)) == 0);
+}
 int start = 0;
-int menu_stage = 0;
+int menu_stage = 0; 
 
 int yellowLine_y = -14;
-int delete_y = -28;
+int delete_y = -28; //where the 
+
+int game_speed = 5; // how fast the cars, road lines will be moving, set to normal (5)
+
 
 //background music
 uint32_t *background_tune_notes;
@@ -9215,8 +9223,21 @@ uint32_t *background_tune_times;
 uint32_t background_tune_note_count;
 uint32_t background_repeat_tune;
 
-const uint32_t my_notes[]={A4,C3,B5,D3,F2};
-const uint32_t my_note_times[]={200,100,300,200,500};
+const uint32_t my_notes[] = {
+    F3, C4, G3, D4, 
+    F3, C4, G3, D4,
+    A3, F3, G3, C4
+};
+
+const uint32_t my_note_times[] = {
+    300, 300, 300, 300,
+    300, 300, 300, 300,
+    400, 400, 400, 600
+};
+int in_menu = 1; //can be 1 or 0, and tells the system if we are in the menu
+int menu_needs_redraw = 1; //will decide if the menu needs to be redrawn, for example if we return back to it
+
+int music_reset = 0; // global flag
 
 
 int main()
@@ -9234,14 +9255,17 @@ int main()
 		gameTime = 0; 
 		lastSecond = milliseconds;       // sync to current time
 	
-		while(start == 0){
+		while(in_menu == 1){
 			updateMenu();
 		}
 		// ── GAME LOOP ─────────────────────────────────────────────────
 		while (1)
 
 		{
-			SysTick_Handler();
+			if(in_menu == 1){
+				break;
+			}
+			
 			eraseSprites();
 			
 			fillRectangle(x, y, 34, 52, 0x0000);// erase player
@@ -9261,12 +9285,14 @@ int main()
 
 			delay(20);
 		}
-		return 0;
 	}
 }
 void startGame(){
+	in_menu = 0;
     fillRectangle(0, 0, 128, 170, 0x0000);
-    printText("TRAFFIC RACER", 5, 60, RGBToWord(255, 80, 0), 0x0000);
+    printTextX2("ROAD", 40, 40, RGBToWord(255, 0, 0), 0x0000);
+	printTextX2("RUNNER", 30, 60, RGBToWord(255, 255, 0), 0x0000);
+	printTextX2("32", 50, 80, RGBToWord(0, 255, 0), 0x0000);
     printText("Press -> to start", 2, 120, 0xFFFF, 0x0000);
 
     gameStart();  // ← waits for button press, clears screen, draws grass
@@ -9293,28 +9319,27 @@ void loop()
 
 void redOn()
 {
-    GPIOB->ODR |= (1 << 3);
+    GPIOB->ODR |= (1 << 0);
 }
 void redOff()
 {
-    GPIOB->ODR &= ~(1 << 3);
+    GPIOB->ODR &= ~(1 << 0);
 }
-
 void yellowOn()
 {
-    GPIOA->ODR |= (1 << 4);   // PB0
+    GPIOA->ODR |= (1 << 12);  
 }
 void yellowOff()
 {
-    GPIOA->ODR &= ~(1 << 4);  // PB0
+    GPIOA->ODR &= ~(1 << 12);  
 }
 void greenOn()
 {
-    GPIOA->ODR |= (1 << 0);
+    GPIOB->ODR |= (1 << 3);
 }
 void greenOff()
 {
-    GPIOA->ODR &= ~(1 << 0);
+    GPIOB->ODR &= ~(1 << 3);
 }
 
 
@@ -9348,8 +9373,8 @@ void drawRoadLine(){
     fillRectangle(65, delete_y, 5, 14, 0x0000);
 
     // Move both
-    yellowLine_y += 5;
-    delete_y += 5;
+    yellowLine_y += game_speed;
+    delete_y += game_speed;
 
     // Wrap the road line back to top
     if (yellowLine_y > 170){
@@ -9362,7 +9387,7 @@ void drawRoadLine(){
 
 void enemyMov(){
 			// move enemy car down
-			car1_y += 5; //change to make the game faster
+			car1_y += game_speed; //change to make the game faster
 			if (car1_y > 170)
 			{
 				car1_y = -36; //where the obstacles start
@@ -9405,52 +9430,67 @@ void hitbox(){
 
 }
 void collision(){
-// collision
-			if (x < car1_x + padding_x && x + padding_x > car1_x &&
-				y < car1_y + padding_y && y + padding_y > car1_y)
-			{
-				eputs("AHHHHH!!!!\r\n");
-				playNote(0);
-				//erase whats on the screen
-				fillRectangle(x, y, 30, 52, 0x0000);
-				fillRectangle(car1_x, car1_y, 30, 50, 0x0000);
-				fillRectangle(65, yellowLine_y, 5, 14, 0x0000);
+    if (x < car1_x + padding_x && x + padding_x > car1_x &&
+        y < car1_y + padding_y && y + padding_y > car1_y)
+    {
+		// in collision(), before drawing GAME OVER
+		background_tune_notes = 0;
+		playNote(0);
 
-				//print messages
-				printTextX2("GAME OVER", 5, 60, 0xFFFF, 0x0000);
+		//prints to serial
+        eputs("AHHHHH!!!!\r\n");
+		//stop sound
+        playNote(0);
 
-				printText("Press -> to restart", 2, 120, 0xFFFF, 0x0000);
+		//delete all items on screen
+        fillRectangle(0, 0, 128, 170, 0x0000);
 
-				//wait until the user presses restart
-				delay(100);
-				while (GPIOB->IDR & (1 << 4));  // wait for press
-				while (!(GPIOB->IDR & (1 << 4))); // wait for release
+        printTextX2("GAME OVER", 5, 60, 0xFFFF, 0x0000);
+        printText("Press <- to exit", 2, 100, 0xFFFF, 0x0000);
+        printText("Press -> to restart", 2, 120, 0xFFFF, 0x0000);
+		putImage(50, 20, 20, 13, icon, 0, 0);
 
+        delay(100);
+
+        // Wait for either button
+        while (1) {
+            // RIGHT = GPIOB pin 4, pull-up so pressed = 0
+            if (!(GPIOB->IDR & (1 << 4))) {
+                while (!(GPIOB->IDR & (1 << 4))); // wait for release
+                fillRectangle(0, 0, 128, 170, 0x0000);
+                READYGO();
+
+                x = 64;  y = 110;
+                car1_x = 70;  car1_y = -40;
+                yellowLine_y = -14;
+                delete_y = -28;
+                gameTime = 0;
+                lastSecond = milliseconds;
+
+                fillRectangle(0, 0, 128, 170, 0x0000);
+                fillRectangle(0, 10, 10, 160, 0x001F);
+                fillRectangle(120, 0, 10, 160, 0x001F);
+                break;
+            }
+
+            if (leftPressed()) {
+				while (leftPressed());
 				fillRectangle(0, 0, 128, 170, 0x0000);
-				READYGO();
 
-				// reset so game is back to normal after you restart
-				x = 64; 
-				y = 110;
-				car1_x = 70; 
-				car1_y = -40;
-
+				x = 64;  y = 110;
+				car1_x = 70;  car1_y = -40;
 				yellowLine_y = -14;
 				delete_y = -28;
-
-
-				//reset timer
 				gameTime = 0;
-				lastSecond = milliseconds;
+				current = 0;
 
-				//clear screen
-				fillRectangle(0, 0, 128, 170, 0x0000);
-
-				//redraw grass
-				fillRectangle(0,10,10,160,0x001F);
-				fillRectangle(120,0,10,160,0x001F);
+				menu_stage = 0;
+				menu_needs_redraw = 1;  // <-- add this
+				in_menu = 1;
+				return;
 			}
-
+		}
+    }
 }
 void eraseSprites(){
 	if(current == 0){
@@ -9470,8 +9510,19 @@ void eraseSprites(){
 	}
 }
 
+void resetMenu() {
+    menu_stage = 0;
+    in_menu = 1;
+    fillRectangle(0, 0, 128, 170, 0x0000);
+    menudraw();
+}
+
 void menudraw() {
     fillRectangle(0, 0, 128, 170, 0x0000);   // draw background ONCE
+
+	printText("Select button", 2, 120, 0xFFFF, 0x0000);
+	printText("to enter", 15, 140, 0xFFFF, 0x0000);
+	putImage(100, 130, 20, 13, icon, 0, 0);
 
     for (int i = 0; i < 3; i++) {
         printText(items[i], 10, 20 + i * 20, 0xFFFF, 0x0000);  // white text
@@ -9489,18 +9540,16 @@ void drawHighlight() {
 }
 
 void menu() {
-	//where the last stage is, so start is at 0, there is no actual stage at -1
     static int last_stage = -1;
 
-    if (last_stage == -1) {
-        menudraw();   // draw background + text once
+    if (menu_needs_redraw) {
+        menudraw();
+        last_stage = -1;         // force highlight redraw too
+        menu_needs_redraw = 0;
     }
 
-	//if menu stage is not equal to last stage
-	//it should draw the highlight where you are , start,instructions or exit
-	//and then last stage will be changed to where you were last
     if (menu_stage != last_stage) {
-        drawHighlight(menu_stage);
+        drawHighlight();
         last_stage = menu_stage;
     }
 }
@@ -9521,7 +9570,7 @@ void updateMenu(){
 	}
 
 
-	if (leftPressed() || in == 'a') {
+	if (select_button() || in == 'a') {
     	if (menu_stage == 0){
 			startGame();
 		}
@@ -9535,10 +9584,55 @@ void updateMenu(){
 
 	menu();
 }
-void settings(){
+static int diff = 1;
 
+void settings() {
+    const char *difficulty[] = {"Easy", "Normal", "Hard"};
+    char in = 0;
+
+    fillRectangle(0, 0, 128, 170, 0x0000);
+    eputs("Settings opened\r\n");
+
+    printText(" Difficulty ", 10, 20, 0xFFE0, 0x0000);
+    printText("Press up twice", 2, 120, 0xFFFF, 0x0000);
+	 printText("to exit", 15, 140, 0xFFFF, 0x0000);
+    printText(difficulty[diff], 10, 60, 0xFFFF, 0x0000);
+
+    while (1) {
+        in = getSerialInput();
+
+        // RIGHT button = GPIOA pin 11 (pull-up, so pressed = 0)
+        if (!(GPIOA->IDR & (1 << 11)) || in == 'd') {
+            while (!(GPIOA->IDR & (1 << 11))); // wait for release
+            in = 0;
+            diff = (diff + 1) % 3;
+            fillRectangle(0, 50, 128, 30, 0x0000);
+            printText(difficulty[diff], 10, 60, 0xFFFF, 0x0000);
+        }
+
+        // UP button = GPIOA pin 8 (pull-up, so pressed = 0) — exit
+        if (!(GPIOA->IDR & (1 << 8)) || in == 'w') {
+            while (!(GPIOA->IDR & (1 << 8)));
+            break;
+        }
+    }
+
+    eputs("Settings closed\r\n");
+    fillRectangle(0, 0, 128, 170, 0x0000);
+
+    if (diff == 0) { 
+		eputs("Difficulty = Easy\r\n");   
+		game_speed = 3; 
+	}
+    else if (diff == 1) { 
+		eputs("Difficulty = Normal\r\n"); 
+		game_speed = 5; 
+	}
+    else { 
+		eputs("Difficulty = Hard\r\n");   
+		game_speed = 7; 
+	}
 }
-
 void instructions(){
 	char in = getSerialInput();
 	//clear screen
@@ -9573,41 +9667,54 @@ void READYGO()
     yellowOff();
     greenOff();
     fillRectangle(0, 0, 128, 170, 0x0000);
-    printTextX2("3", 54, 80, 0xF800, 0x0000);  // bright red
+    printTextX2("3", 54, 80,  RGBToWord(255, 0, 0), 0x0000);  // bright red
     playNote(C4);
     delay(1000);
 
 	// === 2 ===
 	fillRectangle(0, 0, 128, 170, 0x0000);
 
-	redOn();
+	redOff();
 	yellowOn();
 	greenOff();
-
-	printTextX2("A", 54, 80, 0x07E0, 0x0000);
+	//problem *** 2 doesnt show
+	printTextX2("2", 54, 80,  RGBToWord(255, 255, 0), 0x0000);
 	playNote(E4);
 	delay(1000);
 
-    // === 1 === blue color
+    // === 1 === 
     redOff();
     yellowOff();
     greenOn();
     fillRectangle(0, 0, 128, 170, 0x0000);
-    printTextX2("1", 54, 80, 0x001F, 0x0000);  // bright blue
+    printTextX2("1", 54, 80, RGBToWord(0, 255, 0), 0x0000);  // bright blue
     playNote(G4);
     delay(1000);
 
     // === GO === white
-    redOff();
-    yellowOff();
-    greenOff();
+    redOn();
+    yellowOn();
+    greenOn();
     fillRectangle(0, 0, 128, 170, 0x0000);
     printTextX2("GO!!", 34, 80, 0xFFFF, 0x0000);  // white
     playNote(E6);
     delay(1000);
 
+	redOff();
+	yellowOff();
+	greenOff();
     fillRectangle(0, 0, 128, 170, 0x0000);
     playNote(0);
+
+	// start background music AFTER countdown
+    initSound();
+
+	background_tune_notes=my_notes;
+	background_tune_times=my_note_times;
+	background_tune_note_count=5;
+	background_repeat_tune=1;
+    music_reset = 1;
+
 }
 void gameStart()
 {
@@ -9632,6 +9739,14 @@ void SysTick_Handler(void)
 	milliseconds++;
 	static int index=0;
 	static int current_note_timer;
+
+	//resets the music
+	if (music_reset) {
+		index = 0;
+		current_note_timer = 0;
+		music_reset = 0;
+	}
+
 	// background tune handling
 	if (background_tune_notes != 0)
 	{
@@ -9740,14 +9855,14 @@ void setupIO()
 RCC->AHBENR |= (1 << 18) + (1 << 17);
 
     // Configure LED pins as outputs BEFORE display_begin
-    pinMode(GPIOB, 3, 1);  // red   PB3
-    pinMode(GPIOA, 4, 1);  // yellow PA7
-    pinMode(GPIOA, 0, 1);  // green  PA2
+    pinMode(GPIOB, 0, 1);  // red   PB3
+    pinMode(GPIOA, 12, 1);  // yellow PA4
+    pinMode(GPIOB, 3, 1);  // green  PA0
 
     // Make sure all LEDs start OFF
-    GPIOB->ODR &= ~(1 << 3);
-    GPIOA->ODR &= ~(1 << 4);
-    GPIOA->ODR &= ~(1 << 0);
+    GPIOB->ODR &= ~(1 << 0); //red
+    GPIOB->ODR &= ~(1 << 12); //yellow
+    GPIOB->ODR &= ~(3 << 0); //green
 
     display_begin();
 
@@ -9755,9 +9870,10 @@ RCC->AHBENR |= (1 << 18) + (1 << 17);
     pinMode(GPIOB, 5, 0);
     pinMode(GPIOA, 8, 0);
     pinMode(GPIOA, 11, 0);
+	pinMode(GPIOA, 10, 0); //pa 10
     enablePullUp(GPIOB, 4);
     enablePullUp(GPIOB, 5);
     enablePullUp(GPIOA, 11);
     enablePullUp(GPIOA, 8);
-
+	enablePullUp(GPIOA, 10); //pa 10
 }
